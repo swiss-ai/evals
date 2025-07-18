@@ -1,0 +1,331 @@
+{
+    "sq": [
+        "include_base_44_albanian"
+    ],
+    "am": [
+        "global_mmlu_full_am"
+    ],
+    "ar": [
+        "arc_ar",
+        "global_mmlu_full_ar",
+        "hellaswag_ar",
+        "include_base_44_arabic",
+        "xnli_ar"
+    ],
+    "hy": [
+        "arc_hy",
+        "hellaswag_hy",
+        "include_base_44_armenian"
+    ],
+    "az": [
+        "include_base_44_azerbaijani"
+    ],
+    "eu": [
+        "arc_eu",
+        "hellaswag_eu",
+        "include_base_44_basque"
+    ],
+    "be": [
+        "include_base_44_belarusian"
+    ],
+    "bn": [
+        "arc_bn",
+        "global_mmlu_full_bn",
+        "hellaswag_bn",
+        "include_base_44_bengali"
+    ],
+    "bg": [
+        "include_base_44_bulgarian",
+        "xnli_bg"
+    ],
+    "ca": [
+        "arc_ca",
+        "hellaswag_ca"
+    ],
+    "ny": [
+        "global_mmlu_full_ny"
+    ],
+    "zh": [
+        "arc_zh",
+        "global_mmlu_full_zh",
+        "include_base_44_chinese",
+        "paws_zh",
+        "xcopa_zh",
+        "xnli_zh",
+        "xwinograd_zh"
+    ],
+    "hr": [
+        "arc_hr",
+        "hellaswag_hr",
+        "include_base_44_croatian"
+    ],
+    "cs": [
+        "global_mmlu_full_cs"
+    ],
+    "da": [
+        "arc_da",
+        "hellaswag_da"
+    ],
+    "nl": [
+        "arc_nl",
+        "global_mmlu_full_nl",
+        "hellaswag_nl",
+        "include_base_44_dutch"
+    ],
+    "en": [
+        "global_mmlu_full_en",
+        "paws_en",
+        "switzerland_qa_en",
+        "xnli_en",
+        "xwinograd_en"
+    ],
+    "et": [
+        "include_base_44_estonian",
+        "xcopa_et"
+    ],
+    "fi": [
+        "include_base_44_finnish"
+    ],
+    "fr": [
+        "arc_fr",
+        "global_mmlu_full_fr",
+        "hellaswag_fr",
+        "include_base_44_french",
+        "paws_fr",
+        "switzerland_qa_fr",
+        "xnli_fr",
+        "xwinograd_fr"
+    ],
+    "ka": [
+        "include_base_44_georgian"
+    ],
+    "de": [
+        "arc_de",
+        "global_mmlu_full_de",
+        "hellaswag_de",
+        "include_base_44_german",
+        "paws_de",
+        "switzerland_qa_de",
+        "xnli_de"
+    ],
+    "gu": [
+        "arc_gu",
+        "hellaswag_gu"
+    ],
+    "ht": [
+        "xcopa_ht"
+    ],
+    "ha": [
+        "global_mmlu_full_ha"
+    ],
+    "he": [
+        "global_mmlu_full_he",
+        "include_base_44_hebrew"
+    ],
+    "hi": [
+        "arc_hi",
+        "global_mmlu_full_hi",
+        "hellaswag_hi",
+        "include_base_44_hindi",
+        "xnli_hi"
+    ],
+    "hu": [
+        "arc_hu",
+        "hellaswag_hu",
+        "include_base_44_hungarian"
+    ],
+    "ig": [
+        "global_mmlu_full_ig"
+    ],
+    "id": [
+        "arc_id",
+        "global_mmlu_full_id",
+        "hellaswag_id",
+        "include_base_44_indonesian",
+        "xcopa_id"
+    ],
+    "it": [
+        "arc_it",
+        "global_mmlu_full_it",
+        "hellaswag_it",
+        "include_base_44_italian",
+        "switzerland_qa_it",
+        "xcopa_it"
+    ],
+    "ja": [
+        "global_mmlu_full_ja",
+        "include_base_44_japanese",
+        "paws_ja",
+        "xwinograd_jp"
+    ],
+    "kn": [
+        "arc_kn",
+        "hellaswag_kn"
+    ],
+    "kk": [
+        "include_base_44_kazakh"
+    ],
+    "ko": [
+        "global_mmlu_full_ko",
+        "include_base_44_korean",
+        "paws_ko"
+    ],
+    "ky": [
+        "global_mmlu_full_ky"
+    ],
+    "lt": [
+        "global_mmlu_full_lt",
+        "include_base_44_lithuanian"
+    ],
+    "mg": [
+        "global_mmlu_full_mg"
+    ],
+    "ms": [
+        "global_mmlu_full_ms",
+        "include_base_44_malay"
+    ],
+    "ml": [
+        "arc_ml",
+        "hellaswag_ml",
+        "include_base_44_malayalam"
+    ],
+    "mr": [
+        "arc_mr",
+        "hellaswag_mr"
+    ],
+    "ne": [
+        "arc_ne",
+        "global_mmlu_full_ne",
+        "hellaswag_ne",
+        "include_base_44_nepali"
+    ],
+    "fa": [
+        "global_mmlu_full_fa",
+        "include_base_44_persian"
+    ],
+    "pl": [
+        "global_mmlu_full_pl",
+        "include_base_44_polish"
+    ],
+    "pt": [
+        "arc_pt",
+        "global_mmlu_full_pt",
+        "hellaswag_pt",
+        "include_base_44_portuguese",
+        "xwinograd_pt"
+    ],
+    "qu": [
+        "xcopa_qu"
+    ],
+    "ro": [
+        "arc_ro",
+        "global_mmlu_full_ro",
+        "hellaswag_ro"
+    ],
+    "rm": [
+        "switzerland_qa_rm"
+    ],
+    "ru": [
+        "arc_ru",
+        "global_mmlu_full_ru",
+        "hellaswag_ru",
+        "include_base_44_russian",
+        "xnli_ru",
+        "xwinograd_ru"
+    ],
+    "sr": [
+        "arc_sr",
+        "global_mmlu_full_sr",
+        "hellaswag_sr",
+        "include_base_44_serbian"
+    ],
+    "sn": [
+        "global_mmlu_full_sn"
+    ],
+    "si": [
+        "global_mmlu_full_si"
+    ],
+    "sk": [
+        "arc_sk",
+        "hellaswag_sk"
+    ],
+    "so": [
+        "global_mmlu_full_so"
+    ],
+    "es": [
+        "arc_es",
+        "global_mmlu_full_es",
+        "hellaswag_es",
+        "include_base_44_spanish",
+        "paws_es",
+        "xnli_es"
+    ],
+    "sw": [
+        "global_mmlu_full_sw",
+        "xcopa_sw",
+        "xnli_sw"
+    ],
+    "sv": [
+        "arc_sv",
+        "global_mmlu_full_sv",
+        "hellaswag_sv"
+    ],
+    "tl": [
+        "global_mmlu_full_fil",
+        "include_base_44_tagalog"
+    ],
+    "ta": [
+        "arc_ta",
+        "hellaswag_ta",
+        "include_base_44_tamil",
+        "xcopa_ta"
+    ],
+    "te": [
+        "arc_te",
+        "global_mmlu_full_te",
+        "hellaswag_te",
+        "include_base_44_telugu"
+    ],
+    "th": [
+        "xcopa_th",
+        "xnli_th"
+    ],
+    "tr": [
+        "global_mmlu_full_tr",
+        "include_base_44_turkish",
+        "xcopa_tr",
+        "xnli_tr"
+    ],
+    "uk": [
+        "arc_uk",
+        "global_mmlu_full_uk",
+        "hellaswag_uk",
+        "include_base_44_ukrainian"
+    ],
+    "ur": [
+        "include_base_44_urdu",
+        "xnli_ur"
+    ],
+    "uz": [
+        "include_base_44_uzbek"
+    ],
+    "vi": [
+        "arc_vi",
+        "global_mmlu_full_vi",
+        "hellaswag_vi",
+        "include_base_44_vietnamese",
+        "xcopa_vi",
+        "xnli_vi"
+    ],
+    "yo": [
+        "global_mmlu_full_yo"
+    ],
+    "el": [
+        "global_mmlu_full_el",
+        "include_base_44_greek",
+        "xnli_el"
+    ],
+    "mk": [
+        "include_base_44_north macedonian"
+    ]
+}
