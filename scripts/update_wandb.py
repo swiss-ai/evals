@@ -1,6 +1,5 @@
 import collections
 import statistics
-import functools
 import re
 import json
 import os
@@ -10,9 +9,24 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 import wandb
+import iso639
+
+from evals.tasks import get_all_tasks, Task
 
 
-def get_log(infos: List[dict], tasks_cfg: dict) -> Dict[str, float]:
+def get_log(infos: List[dict], tasks_cfg: dict, all_tasks: list[Task]) -> dict[str, float]:
+    def agg(log: dict[str, dict[str, float]], prefix: str, tasks_to_agg: list[str], warn: bool = True):
+        missing = set(tasks_to_agg) - set(log)
+        if len(missing) > 0:
+            if warn:
+                print("WARNING! Macro aggregation for", prefix, "not available. Missing:", sorted(missing))
+            return
+
+        for metric in filter(lambda metric: "stderr" not in metric, all_metrics):
+            values = [log[taskname][metric] for taskname in tasks_to_agg if metric in log[taskname]]
+            if len(values) > 0:
+                log[f"{prefix}.macro"][metric] = statistics.mean(values)
+
     # Aggregate raw info.
     groups = {}
     results = {}
@@ -25,26 +39,44 @@ def get_log(infos: List[dict], tasks_cfg: dict) -> Dict[str, float]:
     log = collections.defaultdict(dict)
     for dataname, details in results.items():
         for metricname, val in details.items():
-            if metricname == "alias" or val == "N/A":
+            if metricname == "alias" or val in ["N/A", " "]:
                 continue
-            assert isinstance(val, float), val
+            assert isinstance(val, float), f"{dataname}.{metricname} = val"
             metricname, _ = metricname.split(",")  # for some reason it is always acc,none so we remove the none.
             all_metrics.add(metricname)
             log[dataname][metricname] = val
 
-    # Do macro aggregations.
-    for groupname, subgroups in tasks_cfg["groups"].items():
-        missing = set(subgroups) - set(results)
-        if len(missing) > 0:
-            print("WARNING! Macro aggregation for", groupname, "not available. Missing:", sorted(missing))
-            continue
-        metrics = sorted(functools.reduce(set.union, (set(log[dataname]) for dataname in subgroups)))
-        for metric in filter(lambda metric: "stderr" not in metric, all_metrics):
-            values = [log[dataname][metric] for dataname in subgroups if metric in log[dataname]]
-            if len(values) > 0:
-                log[f"{groupname}_macro"][metric] = statistics.mean(values)
+    # Now that we have all the "leaf task groups" we can do four aggregations:
+    # Let's start with the {language_group} agg.
+    for lang_group_name, langs in tasks_cfg["language_groups"].items():
+        tasks_to_agg = [task.name for task in all_tasks
+                        if task.language.pt1 in langs]
+        agg(log, f"language_group/{lang_group_name}", list(tasks_to_agg))
 
-    # Finally, push to wandb.
+    # Aggregate start with the {dimension} agg.
+    all_dims = sorted({task.dimension for task in all_tasks})
+    for dim in all_dims:
+        tasks_to_agg = [task.name for task in all_tasks
+                        if task.dimension == dim]
+        agg(log, f"dimension/{dim}", list(tasks_to_agg))
+
+
+    # Agregate {dimension}.{language_group}.macro.
+    for lang_group_name, langs in tasks_cfg["language_groups"].items():
+        for dim in all_dims:
+            tasks_to_agg = [task.name for task in all_tasks
+                            if task.language.pt1 in langs and task.dimension == dim]
+            agg(log, f"dimension_group/{dim}.{lang_group_name}", list(tasks_to_agg))
+
+    # Finally, {dimension}.{language}
+    all_langs = sorted({task.language.pt1 for task in all_tasks})
+    for lang in all_langs:
+        for dim in all_dims:
+            tasks_to_agg = [task.name for task in all_tasks
+                            if task.language.pt1 == lang and task.dimension == dim]
+            agg(log, f"dimension_lang/{dim}.{lang}", list(tasks_to_agg))
+
+    # Finally, prepare wandb format.
     wandb_log = {}
     for dataname, details in log.items():
         for metric, value in details.items():
@@ -65,12 +97,31 @@ def get_history(name: str) -> Dict[int, Dict[str, float]]:
     return history
 
 
-def main(logs_root: Path, name: Optional[str], it: Optional[int],
-         tasks: Path):
+def repair(all_tasks: list[Task]) -> list[Task]:
+    repaired = []
+    for task in all_tasks:
+        if task.name == "ai2_arc":
+            repaired += [Task("arc_easy", (), 0, iso639.Lang("en"), task.dimension),
+                         Task("arc_challenge", (), 0, iso639.Lang("en"), task.dimension)]
+        else:
+            repaired.append(task)
+    return repaired
 
-    # model => {metric => value}
-    with open(tasks) as f:
+
+def main(logs_root: Path, name: Optional[str], it: Optional[int], cfg: Path):
+
+    all_tasks = get_all_tasks(all_tasks_json=cfg/"all_tasks.json")
+    all_tasks = repair(all_tasks)
+    with open(cfg/"tasks.json") as f:
         tasks_cfg = json.load(f)
+    all_languages = {task.language.pt1 for task in all_tasks}
+
+    for lang_group in tasks_cfg["language_groups"].values():
+        for lang in lang_group:
+            assert lang in all_languages or lang == "rm", lang
+
+    tasks_cfg["language_groups"]["global"] = list(all_languages)
+    tasks_cfg["language_groups"]["multilingual"] = list(all_languages - {"en"})
 
     # Grab each possible log and update wandb run.
     # First, iterate model names.
@@ -99,9 +150,8 @@ def main(logs_root: Path, name: Optional[str], it: Optional[int],
                         results.append(json.load(f))
 
                 if len(results) > 0:
-                    log = get_log(results, tasks_cfg)
+                    log = get_log(results, tasks_cfg, all_tasks)
                     log.update({"ConsumedTokens": consumed_tokens, "OptStep": current_it})
-                    sublog = {k: v for k, v in log.items() if "macro/acc" in k}
                     # Update log if needed.
                     if consumed_tokens in history:
                         if "eval_table" in history[consumed_tokens]:
@@ -112,10 +162,8 @@ def main(logs_root: Path, name: Optional[str], it: Optional[int],
                             print(sorted(set(history[consumed_tokens]) - set(log)))
                             print("Important! wandb log at current iteration already found, but differs. Updating")
                             run.log(log)
-                            print("Logged sucessful:", sublog)
                     else:
                         run.log(log)
-                        print("Logged sucessful:", sublog)
 
                     # Update all_logs so we can build the table after this big loop.
                     if p1.name not in latest_logs or latest_logs[p1.name]["ConsumedTokens"] < consumed_tokens:
@@ -137,6 +185,7 @@ def main(logs_root: Path, name: Optional[str], it: Optional[int],
             df = pd.DataFrame([sublog])
             with wandb.init(id=name, name=name) as run:
                 run.log({"eval_table": wandb.Table(dataframe=df), "ConsumedTokens": log["ConsumedTokens"]})
+    print("Goodbye")
 
 
 if __name__ == "__main__":
@@ -144,6 +193,6 @@ if __name__ == "__main__":
     parser.add_argument("logs_root", type=Path)
     parser.add_argument("--name")
     parser.add_argument("--it", type=int)
-    parser.add_argument("--tasks", type=Path, default=Path("configs/tasks.json"))
+    parser.add_argument("--cfg", type=Path, default=Path("configs"))
     args = parser.parse_args()
     main(**vars(args))

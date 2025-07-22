@@ -12,10 +12,11 @@
 				 "/capstor/scratch/cscs/asolergi/main_run_70B_megatron/Megatron-LM/logs/Meg-Runs/main-runs-v1/apertus3-70b-512-nodes-1e-5lr/checkpoints",
 				 "/capstor/scratch/cscs/asolergi/main_run_70B_megatron/Megatron-LM/logs/Meg-Runs/main-runs-v1/apertus3-70b-512-nodes-1e-5lr/checkpoints-512-noOverlap"
 			],
+			"max_samples": 500000,
 			"size": 70,
 			"tokens_per_iter": "8388608:523519,16777216:",
-			"frequency": 30000,
-			"start_eval_from": 830000
+			"frequency": 15000,
+			"start_eval_from": 1070000
 		  }
 	 }
 }

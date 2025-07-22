@@ -13,20 +13,13 @@ from __future__ import annotations
 import collections
 import re
 import os
+import math
 import json
 import subprocess
 import shutil
 from pathlib import Path
 
-
-
-def unify(completed: list[str]) -> list[str]:
-    completed_set = set(completed)
-    unified = []
-    for groupname, tasks in filter(lambda t: t[0] != ROOT_EVAL, TASKS["groups"].items()):
-        if set(tasks) <= completed_set:
-            unified.append(groupname)
-    return unified
+from evals.tasks import Task, get_all_tasks, get_partition
 
 
 def get_running(as_jobname: bool = False) -> dict[str, dict[int, list[str]] | list[str]]:
@@ -47,10 +40,7 @@ def get_running(as_jobname: bool = False) -> dict[str, dict[int, list[str]] | li
                 running.append(jobname)
             else:
                 name, group, it = rmatch.groups()
-                if group == ROOT_EVAL:
-                    running[name][int(it)] += ALL_EVALS
-                else:
-                    running[name][int(it)].append(group)
+                running[name][int(it)] += group
     return running
 
 
@@ -60,9 +50,9 @@ def get_evaluated(model: str) -> dict[int, list[str]]:
         it = int(re.match("^iter_([0-9]+)$", path.parent.parent.parent.parent.name).group(1))
         with open(path) as f:
             info = json.load(f)
-        for task in info["results"]:
-            status[it].append(task)
-    return {it: unify(tasks) for it, tasks in status.items()}
+        for taskname in info["results"]:
+            status[it].append(taskname)
+    return status
 
 
 def get_available(model_dirs: list[Path]) -> list[int]:
@@ -73,49 +63,81 @@ def get_available(model_dirs: list[Path]) -> list[int]:
     return available
 
 
-def submit(name: str, model: dict, it: int, tasks: list[str]):
-    task_alias = ROOT_EVAL if tasks == ALL_EVALS else " ".join(tasks)
-    tasks = " ".join(tasks)
+def submit(name: str, model: dict, it: int, tasks: list[Task]):
+    # Get partition of tasks.
+    total_size = sum(task.size for task in ALL_TASKS)
+    n_shards = math.ceil(total_size/model["max_samples"])
+    partition = get_partition(tasks=tasks, shards=n_shards)
+    default_partition = get_partition(tasks=ALL_TASKS, shards=n_shards)
+
+    # Schedule all tasks requested.
     path, = (model_dir for model_dir in model["model_dirs"]
              if Path(f"{model_dir}/iter_{it:07d}").exists())
-    cmd = ["sbatch",
-           f"--job-name=eval_{name}_{task_alias}_{it}",
-           "scripts/evaluate.sbatch",
-           str(path),
-           str(it),
-           model["tokens_per_iter"],
-           name]
-    env = {**os.environ,
-           "LOGS_ROOT": CFG["logs_root"],
-           "TOKENIZER": "alehc/swissai-tokenizer",
-           "BOS": "true",
-           "SIZE": str(model["size"]),
-           "HF_TEMP_DIR": CFG["hf_temp_dir"],
-           "TASKS": tasks}
-    print("Launching", name, it, tasks, path)
-    subprocess.run(cmd, env=env, stdout=subprocess.PIPE)
+    for part in partition:
+        # Get special jobname depending on the tasks requested.
+        matches = [(i, default_part) for i, default_part in enumerate(default_partition)
+                   if part == default_part]
+        if len(matches) == 0:
+            jobname = "mixed"
+        else:
+            (shard_i, _), = matches
+            jobname = f"shard{shard_i}of{n_shards}"
+        jobname = f"eval_{name}_{jobname}_{it}"
+
+        cmd = ["sbatch", f"--job-name={jobname}", "scripts/evaluate.sbatch", str(path),
+               str(it), model["tokens_per_iter"], name] 
+        env = {**os.environ,
+               "LOGS_ROOT": CFG["logs_root"],
+               "TOKENIZER": "alehc/swissai-tokenizer",
+               "BOS": "true",
+               "SIZE": str(model["size"]),
+               "HF_TEMP_DIR": CFG["hf_temp_dir"],
+               "TASKS": ",".join(task.name for task in part)}
+        print("Launching", jobname)
+        subprocess.run(cmd, env=env, stdout=subprocess.PIPE)
 
 
 def submit_needed():
     running = get_running()
     for name, model in CFG["models"].items():
+        total_size = sum(task.size for task in ALL_TASKS)
+        n_shards = math.ceil(total_size/model["max_samples"])
+        default_partition = get_partition(tasks=ALL_TASKS, shards=n_shards)
+
+        # Get tasks alredy evaluated (reading them from the `results.json`).
         status = get_evaluated(name)
-        for it, tasks in running[name].items():
-            if it in status:
-                status[it] += tasks
-            else:
-                status[it] = tasks
+        default_partition = get_partition(tasks=ALL_TASKS, shards=n_shards)
+
+        # Handle already evaluated: if a "mixed" group is running, assume it will
+        # contain all missing tasks because we don't know which one does it contain in reality,
+        # otherwise obtain the correct shard.
+        for it, groups in running[name].items():
+            for group in groups:
+                if groups == "mixed":
+                    actual_tasks = ALL_TASKS
+                else:
+                    shard_i, total_shards = re.match("^shard([0-9]+)of([0-9]+)$", group).groups()
+                    assert total_shards == n_shards
+                    actual_tasks = default_partition[int(shard_i)]
+
+                if it in status:
+                    status[it] += [task.name for task in actual_tasks]
+                else:
+                    status[it] = [task.name for task in actual_tasks]
 
         available = get_available(model["model_dirs"])
         for it in available:
             if (it - model["start_eval_from"]) % model["frequency"] == 0 and it >= model["start_eval_from"]:
-                missing = sorted(set(ALL_EVALS) - set(status.get(it, [])))
+                # Determine missing set.
+                missing = []
+                handled = status.get(it, [])
+                for task in ALL_TASKS:
+                    if len(task.alias) > 0 and any(actual_name not in handled for actual_name in task.alias):
+                        missing.append(task)
+                    elif len(task.alias) == 0 and task.name not in handled:
+                        missing.append(task)
                 if len(missing) > 0:
-                    if model["size"] < 70:
-                        submit(name, model, it, missing)
-                    else:
-                        for task in missing:
-                            submit(name, model, it, [task])
+                    submit(name, model, it, missing)
 
 
 def update_hf_checkpoints():
@@ -172,10 +194,7 @@ def main():
 
 
 if __name__ == "__main__":
+    ALL_TASKS = get_all_tasks()
     with open("configs/automation.json") as f:
         CFG = json.load(f)
-    with open("configs/tasks.json") as f:
-        TASKS = json.load(f)
-    ROOT_EVAL = TASKS["root"]
-    ALL_EVALS = sorted([task for task in TASKS["groups"] if task != ROOT_EVAL])
     main()
