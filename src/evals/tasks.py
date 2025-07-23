@@ -20,12 +20,24 @@ class Dimension(enum.StrEnum):
     general_abilities = enum.auto()
     factual_agnostic = enum.auto()
     factual_regional = enum.auto()
+    safety = enum.auto()
+    reasoning = enum.auto()
+    math = enum.auto()
+    coding = enum.auto()
+    if_and_chat = enum.auto()
+    bias = enum.auto()
 
     @classmethod
     def get(cls, name: str) -> Dimension:
-        general = ["hellaswag", "piqa", "arc", "ai2_arc", "winogrande", "xwinograd", "xnli", "copa", "xcopa"]
-        agnostic = ["mmlu", "global_mmlu"]
+        general = ["piqa", "winogrande", "xwinograd", "xnli", "copa", "xcopa"]
+        agnostic = ["mmlu", "global_mmlu", "truthfulqa"]
         regional = ["include", "switzerland_qa", "cultural_bench", "blend"]
+        safety = ["multijail", "aya_redteaming", "realtoxicityprompts", "polyglotoxicityprompts", "toxigen"]
+        reasoning = ["bbh", "drop", "arc", "ai2_arc", "gpqa"]
+        math = ["hendrycks_math", "gsm8k", "math"]
+        coding = ["humaneval", "mbpp"]
+        if_and_chat = ["ifeval", "hellaswag"]
+        bias = ["bbq"]
 
         if any(name.startswith(group) for group in general):
             return Dimension.general_abilities
@@ -33,12 +45,29 @@ class Dimension(enum.StrEnum):
             return Dimension.factual_agnostic
         if any(name.startswith(group) for group in regional):
             return Dimension.factual_regional
-        raise ValueError(f"Could not infer dimension for task {task}")
+        if any(name.startswith(group) for group in safety):
+            return Dimension.safety
+        if any(name.startswith(group) for group in reasoning):
+            return Dimension.reasoning
+        if any(name.startswith(group) for group in math):
+            return Dimension.math
+        if any(name.startswith(group) for group in coding):
+            return Dimension.coding
+        if any(name.startswith(group) for group in if_and_chat):
+            return Dimension.if_and_chat
+        if any(name.startswith(group) for group in bias):
+            return Dimension.bias
+        raise ValueError(f"Could not infer dimension for task {name}")
 
 
 class TaskKind(enum.StrEnum):
     pretrain = enum.auto()
-    posttrain = enum.auto()
+    knowledge_dev = enum.auto()
+    knowledge_test = enum.auto()
+    sft_dev = enum.auto()
+    alignment_dev = enum.auto()
+    reasoning_dev = enum.auto()
+    reasoning_test = enum.auto()
 
 
 @dataclasses.dataclass
