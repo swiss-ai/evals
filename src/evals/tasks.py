@@ -20,50 +20,123 @@ class Dimension(enum.StrEnum):
     general_abilities = enum.auto()
     factual_agnostic = enum.auto()
     factual_regional = enum.auto()
-    safety = enum.auto()
-    reasoning = enum.auto()
-    math = enum.auto()
-    coding = enum.auto()
-    if_and_chat = enum.auto()
-    bias = enum.auto()
+    reasoning_multihop = enum.auto()
+    reasoning_planning = enum.auto()
+    reasoning_math = enum.auto()
+    reasoning_code = enum.auto()
+    reasoning_if_and_chat = enum.auto()
+    reasoning_causal = enum.auto()
+    redteaming_harmfulness = enum.auto()
+    redteaming_alignment = enum.auto()
+    redteaming_robustness = enum.auto()
 
     @classmethod
     def get(cls, name: str) -> Dimension:
-        general = ["piqa", "winogrande", "xwinograd", "xnli", "copa", "xcopa"]
-        agnostic = ["mmlu", "global_mmlu", "truthfulqa"]
-        regional = ["include", "switzerland_qa", "cultural_bench", "blend"]
-        safety = ["multijail", "aya_redteaming", "realtoxicityprompts", "polyglotoxicityprompts", "toxigen"]
-        reasoning = ["bbh", "drop", "arc", "ai2_arc", "gpqa"]
-        math = ["hendrycks_math", "gsm8k", "math"]
-        coding = ["humaneval", "mbpp"]
-        if_and_chat = ["ifeval", "hellaswag"]
-        bias = ["bbq"]
+        general_abilities = [
+            "piqa",
+            "winogrande",
+            "xwinograd",
+            "xnli",
+            "copa",
+            "xcopa",
+            "hellaswag",
+            "m_hellaswag",
+            "arc",
+            "m_arc"
+        ]
+        factual_agnostic = [
+            "mmlu",
+            "global_mmlu",
+            "truthfulqa",
+        ]
+        factual_regional = [
+            "include",
+            "switzerland_qa",
+            "cultural_bench",
+            "blend",
+            "calmqa"
+        ]
+        reasoning_multihop = [
+            "agieval",
+            "drop",
+            "mlogiqa",
+            "bbh",
+            "arc",
+            "m_arc",
+            "hotpotqa"
+        ]
+        reasoning_planning = [
+            "acpbench"
+        ]
+        reasoning_math = [
+            "hendrycks_math",
+            "gsm8k",
+            "aime",
+            "mathqa",
+            "mgsm",
+            "polymath"
+            "gpqa"
+        ]
+        reasoning_code = [
+            "humaneval",
+            "mbpp",
+            "bigcodebench"
+        ]
+        reasoning_if_and_chat = [
+            "ifeval",
+            "multi_ifeval",
+        ]
+        reasoning_causal = [
+            "crab"
+        ]
+        redteaming_harmfulness = [
+            "bbq",
+            "toxigen",
+            "realtoxicityprompts",
+            "polyglotoxicityprompts",
+            "aya_redteaming"
+        ]
+        redteaming_alignment = [
+            "reward_bench",
+            "m_arena_hard"
+        ]
+        redteaming_robustness = [
+            "harmbench",
+            "multijail"
+        ]
 
-        if any(name.startswith(group) for group in general):
+
+        if any(name.startswith(group) for group in general_abilities):
             return Dimension.general_abilities
-        if any(name.startswith(group) for group in agnostic):
+        if any(name.startswith(group) for group in factual_agnostic):
             return Dimension.factual_agnostic
-        if any(name.startswith(group) for group in regional):
+        if any(name.startswith(group) for group in factual_regional):
             return Dimension.factual_regional
-        if any(name.startswith(group) for group in safety):
-            return Dimension.safety
-        if any(name.startswith(group) for group in reasoning):
-            return Dimension.reasoning
-        if any(name.startswith(group) for group in math):
-            return Dimension.math
-        if any(name.startswith(group) for group in coding):
-            return Dimension.coding
-        if any(name.startswith(group) for group in if_and_chat):
-            return Dimension.if_and_chat
-        if any(name.startswith(group) for group in bias):
-            return Dimension.bias
+        if any(name.startswith(group) for group in reasoning_multihop):
+            return Dimension.reasoning_multihop
+        if any(name.startswith(group) for group in reasoning_planning):
+            return Dimension.reasoning_planning
+        if any(name.startswith(group) for group in reasoning_math):
+            return Dimension.reasoning_math
+        if any(name.startswith(group) for group in reasoning_code):
+            return Dimension.reasoning_code
+        if any(name.startswith(group) for group in reasoning_if_and_chat):
+            return Dimension.reasoning_if_and_chat
+        if any(name.startswith(group) for group in reasoning_causal):
+            return Dimension.reasoning_causal
+        if any(name.startswith(group) for group in redteaming_harmfulness):
+            return Dimension.redteaming_harmfulness
+        if any(name.startswith(group) for group in redteaming_alignment):
+            return Dimension.redteaming_alignment
+        if any(name.startswith(group) for group in redteaming_robustness):
+            return Dimension.redteaming_robustness
         raise ValueError(f"Could not infer dimension for task {name}")
 
 
 class TaskKind(enum.StrEnum):
     pretrain = enum.auto()
-    knowledge_dev = enum.auto()
-    knowledge_test = enum.auto()
+    factual_dev = enum.auto()
+    factual_test = enum.auto()
     sft_dev = enum.auto()
     alignment_dev = enum.auto()
     reasoning_dev = enum.auto()
