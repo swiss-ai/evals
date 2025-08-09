@@ -7,6 +7,7 @@ import json
 import wandb
 from pathlib import Path
 from typing import List
+from collections import defaultdict
 
 from .data_structures import Sample, Metric, Task, ModelEvaluation
 
@@ -31,13 +32,28 @@ def create_model_evaluation_from_results(model_name: str, eval_dir: Path, max_sa
     for task_name, metrics in res["results"].items():
         # Create Metric objects for this task
         task_metrics = []
-        for metric_name, value in metrics.items():
-            if metric_name == "alias" or value in ["N/A", " ", None]:
+        task_metric_map = defaultdict(list)
+        for metric, value in metrics.items():
+            if metric == "alias" or value in ["N/A", " ", None]:
                 continue
-
-            metric = metric_name.split(",")[0]  # Clean metric name
-            task_metrics.append(Metric(name=metric, score=float(value)))
+            
+            metric_parts = metric.split(",")
+            metric_name = metric_parts[0].strip()
+            filter_name = metric_parts[1].strip() if len(metric_parts) > 1 else "none"
+            if filter_name == "none":
+                # If no filter, just use the metric directly
+                task_metrics.append(Metric(name=metric_name, score=float(value)))
+            else:
+                # If filter is specified, use full metric name
+                task_metrics.append(Metric(name=metric, score=float(value)))
+                # Store in map for later aggregation
+                task_metric_map[metric_name].append(Metric(name=metric_name, score=float(value)))
         
+        for metric_name, metric_list in task_metric_map.items():
+            if len(metric_list) == 1:
+                # If only one metric with this name, use it directly
+                task_metrics.append(metric_list[0])
+
         # Load corresponding samples for this task using exact filename
         task_samples = []
         # There should be only one sample file per task but for aggregation tasks there will zero

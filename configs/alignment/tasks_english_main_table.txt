@@ -1,4 +1,3 @@
-mmlu_flan_cot_zeroshot/exact_match
 mmlu_flan_cot_zeroshot/exact_match,flexible-extract
 mmlu_flan_cot_zeroshot/exact_match,strict-match
 truthfulqa_mc2/acc
@@ -7,9 +6,12 @@ drop/f1
 acp_bench_bool/exact_match
 acp_bench_mcq/exact_match
 gsm8k_cot/exact_match
+mathqa/acc_norm
+hendrycks_math/exact_match
 humaneval_instruct/pass@10
 mbpp_instruct/pass_at_1
 ifeval/prompt_level_loose_acc
-hellaswag/acc
-toxigen/acc
+hellaswag/acc_norm
+harmbench/score
+toxigen/acc_norm
 bbq/acc

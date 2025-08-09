@@ -160,6 +160,10 @@ fi
 
 INSTALL_CMD="pip install -v --no-cache-dir --no-build-isolation --no-deps --force-reinstall -U \
 	datasketch \
+	sympy \
+	math_verify \
+	\"antlr4-python3-runtime==4.11\" \
+	latex2sympy2_extended \
     \"lm-eval[vllm] @ git+https://github.com/swiss-ai/lm-evaluation-harness.git@main\""
 
 CMD="lm_eval --model_args=$COMMON_MODEL_ARGS ${COMMON_EVAL_ARGS[@]}"

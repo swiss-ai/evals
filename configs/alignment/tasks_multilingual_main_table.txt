@@ -1,8 +1,13 @@
 global_mmlu/acc
 truthfulqa_multilingual_mc2/acc
-mgsm_native_cot_en/exact_match
-hellaswag_multilingual/acc
+mgsm_native_cot_en/exact_match,flexible-extract
+mgsm_direct/exact_match,flexible-extract
+hellaswag_multilingual/acc_norm
+mlogiqa/acc_norm
+multi-if/prompt_level_loose_acc
 include_base_44/acc
+include_base_new_45/acc_norm
 blend/acc
-cultural_bench/acc
+cultural_bench/acc_norm
 multijail/score
+switzerland_qa/acc
