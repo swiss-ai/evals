@@ -4,9 +4,10 @@
 # Uses the same entity and project defaults as evaluate_hf.sbatch
 
 # Set default values (same as evaluate_hf.sbatch)
+export WANDB_API_KEY=$(cat $HOME/.wandb-api-key)
 WANDB_ENTITY=${WANDB_ENTITY:-apertus}
-WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-v0.0.1}
-LOGS_ROOT=${LOGS_ROOT:-/iopsstor/scratch/cscs/ihakimi/eval-logs}
+WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-sp-tokens-abl-v0.0.1-multilingual}
+LOGS_ROOT=${LOGS_ROOT:-/capstor/store/cscs/swissai/infra01/eval-logs/apertus/swissai-evals-sp-tokens-abl-v0.0.1-multilingual}
 
 echo "Uploading all model results to W&B..."
 echo "Entity: $WANDB_ENTITY"

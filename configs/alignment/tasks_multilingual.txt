@@ -2,8 +2,6 @@ global_mmlu
 truthfulqa_multilingual
 mgsm_cot_native
 hellaswag_multilingual
-mlogiqa
 blend
 include_base_44
 cultural_bench
-switzerland_qa

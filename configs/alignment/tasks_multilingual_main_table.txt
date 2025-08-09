@@ -2,9 +2,7 @@ global_mmlu/acc
 truthfulqa_multilingual_mc2/acc
 mgsm_native_cot_en/exact_match
 hellaswag_multilingual/acc
-mlogiqa/acc
 include_base_44/acc
 blend/acc
 cultural_bench/acc
 multijail/score
-switzerland_qa/acc

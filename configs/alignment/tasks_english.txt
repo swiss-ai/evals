@@ -7,12 +7,9 @@ drop
 acp_bench
 gsm8k_cot
 gsm8k_olmes_cot
-hendrycks_math
-mathqa
 humaneval_instruct
 mbpp_instruct
 ifeval
 hellaswag
-harmbench
 toxigen
 bbq

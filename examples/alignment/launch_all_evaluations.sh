@@ -14,25 +14,29 @@ echo "======================================"
 
 # Set default environment variables
 export WANDB_ENTITY=${WANDB_ENTITY:-apertus}
-export WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-v0.0.8}
+export WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-sp-tokens-abl-v0.0.1}
 export TASKS=${TASKS:-./configs/alignment/tasks_english.txt}
 export TABLE_METRICS=${TABLE_METRICS:-./configs/alignment/tasks_english_main_table.txt}
+export HF_HOME=$SCRATCH/huggingface
+export HF_TOKEN=$(cat $HOME/.hf-token)
+export WANDB_API_KEY=$(cat $HOME/.wandb-api-key)
 
 # Check if multilingual flag is set
 if [ "$MULTILINGUAL" = "true" ]; then
     echo "🌍 Multilingual mode enabled"
     # Set multilingual-specific configurations
-    export TASKS=./configs/alignment/tasks_multilingual.txt
-    export TABLE_METRICS=./configs/alignment/tasks_multilingual_main_table.txt
+    export TASKS=./configs/alignment/tasks_multilingual_custom.txt
+    export TABLE_METRICS=./configs/alignment/tasks_multilingual_main_table_custom.txt
     export WANDB_PROJECT="${WANDB_PROJECT}-multilingual"
 fi
 
 # Array of evaluation scripts to run
 EVALUATION_SCRIPTS=(
-    "examples/alignment/hf_eval_multiple_apertus_base_models.sh"
-    "examples/alignment/hf_eval_multiple_apertus_models.sh"
-    "examples/alignment/hf_eval_multiple_other_base_models.sh"
-    "examples/alignment/hf_eval_multiple_other_models.sh"
+    # "examples/alignment/hf_eval_multiple_apertus_base_models.sh"
+    # "examples/alignment/hf_eval_multiple_apertus_models.sh"
+    # "examples/alignment/hf_eval_multiple_other_base_models.sh"
+    # "examples/alignment/hf_eval_multiple_other_models.sh"
+    "examples/alignment/hf_eval_sp_token_apertus_models.sh"
 )
 
 echo "📋 Scripts to be launched:"
