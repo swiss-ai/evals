@@ -1,11 +1,2 @@
-global_mmlu
-truthfulqa_multilingual
-mgsm_cot_native
 mgsm_direct
-hellaswag_multilingual
-blend
-include_base_44
-include_base_new_45
-cultural_bench
-switzerland_qa
-multi-if
+mgsm_native_cot

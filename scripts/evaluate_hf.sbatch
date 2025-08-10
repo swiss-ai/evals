@@ -49,7 +49,7 @@ if (( $# != 2 )); then
 fi
 MODEL=$1
 NAME=$2
-BS=${BS:-"auto:20"}
+BS=${BS:-"16"}
 SIZE=${SIZE:-1}
 BOS=${BOS:-false}
 LOGS_ROOT=${LOGS_ROOT:-/capstor/store/cscs/swissai/infra01/eval-logs}
@@ -164,7 +164,7 @@ INSTALL_CMD="pip install -v --no-cache-dir --no-build-isolation --no-deps --forc
 	math_verify \
 	\"antlr4-python3-runtime==4.11\" \
 	latex2sympy2_extended \
-    \"lm-eval[vllm] @ git+https://github.com/swiss-ai/lm-evaluation-harness.git@main\""
+    \"lm-eval[vllm] @ git+https://github.com/swiss-ai/lm-evaluation-harness.git@mgsm_fix\""
 
 CMD="lm_eval --model_args=$COMMON_MODEL_ARGS ${COMMON_EVAL_ARGS[@]}"
 
