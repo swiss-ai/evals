@@ -134,10 +134,9 @@ export NCCL_IB_TIMEOUT=22
 export NCCL_IB_RETRY_CNT=7
 # Reduce memory fraction to avoid OOM during initialization
 VLLM_MEMORY_FRACTION=0.75
-# Add distributed backend settings for Flash Attention 3
-export VLLM_USE_TRITON_FLASH_ATTN=1
-export VLLM_ATTENTION_BACKEND=FLASH_ATTN
-export VLLM_FLASH_ATTN_VERSION=3
+export VLLM_USE_TRITON_FLASH_ATTN=0
+export VLLM_ATTENTION_BACKEND=CUTLASS
+unset VLLM_FLASH_ATTN_VERSION
 COMMON_MODEL_ARGS="$COMMON_MODEL_ARGS,data_parallel_size=$DP,tensor_parallel_size=$MP,gpu_memory_utilization=$VLLM_MEMORY_FRACTION,max_length=$MAX_LENGTH,max_gen_toks=$MAX_NEW_TOKENS,enable_thinking=False,enforce_eager=True,swap_space=32"
 
 HARNESS_EVAL_DIR=$HARNESS_DIR/eval_$(date +%Y%m%d_%H%M%S)_$SLURM_JOBID
