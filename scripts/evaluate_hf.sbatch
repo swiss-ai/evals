@@ -10,7 +10,7 @@
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --exclusive
 #SBATCH --partition=normal
-#SBATCH --time=11:59:00
+#SBATCH --time=00:09:00
 
 # Aux functions.
 usage() {
@@ -128,10 +128,6 @@ fi
 export OMP_NUM_THREADS=$(( 8 * $GPUS_PER_NODE ))
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 export VLLM_DISABLE_COMPILE_CACHE=1
-# Set NCCL timeouts for better stability
-export NCCL_TIMEOUT=1800
-export NCCL_IB_TIMEOUT=22
-export NCCL_IB_RETRY_CNT=7
 # Reduce memory fraction to avoid OOM during initialization
 VLLM_MEMORY_FRACTION=0.75
 export VLLM_USE_TRITON_FLASH_ATTN=0
