@@ -10,7 +10,7 @@
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --exclusive
 #SBATCH --partition=normal
-#SBATCH --time=00:09:00
+#SBATCH --time=11:59:00
 
 # Aux functions.
 usage() {
