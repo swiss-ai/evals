@@ -14,7 +14,7 @@ echo "======================================"
 
 # Set default environment variables
 export WANDB_ENTITY=${WANDB_ENTITY:-apertus}
-export WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-sp-tokens-abl-v0.0.3-mgsm}
+export WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-dataset-abl-v0.0.1}
 export TASKS=${TASKS:-./configs/alignment/tasks_english.txt}
 export TABLE_METRICS=${TABLE_METRICS:-./configs/alignment/tasks_english_main_table.txt}
 export HF_HOME=$SCRATCH/huggingface
@@ -36,7 +36,8 @@ EVALUATION_SCRIPTS=(
     # "examples/alignment/hf_eval_multiple_apertus_models.sh"
     # "examples/alignment/hf_eval_multiple_other_base_models.sh"
     # "examples/alignment/hf_eval_multiple_other_models.sh"
-    "examples/alignment/hf_eval_sp_token_apertus_models.sh"
+    # "examples/alignment/hf_eval_sp_token_apertus_models.sh"
+    "examples/alignment/hf_eval_dataset_abl_apertus_models.sh"
 )
 
 echo "📋 Scripts to be launched:"

@@ -1,7 +1,7 @@
 global_mmlu
 truthfulqa_multilingual
-mgsm_cot_native
 mgsm_direct
+mgsm_native_cot
 hellaswag_multilingual
 mlogiqa
 blend

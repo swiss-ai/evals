@@ -1,2 +1,7 @@
-mgsm_direct
+global_mmlu
 mgsm_native_cot
+mgsm_direct
+include_base_44
+include_base_new_45
+cultural_bench
+switzerland_qa

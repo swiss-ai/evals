@@ -69,7 +69,7 @@ APPLY_CHAT_TEMPLATE=${APPLY_CHAT_TEMPLATE:-false}
 
 # optional eval arguments
 MAX_LENGTH=${MAX_LENGTH:-""}
-MAX_NEW_TOKENS=${MAX_NEW_TOKENS:-""}
+MAX_GEN_TOKENS=${MAX_GEN_TOKENS:-""}
 LIMIT=${LIMIT:-""}
 
 # Print configuration.

@@ -10,5 +10,6 @@ gsm8k_olmes_cot
 humaneval_instruct
 mbpp_instruct
 ifeval
+hellaswag
 toxigen
 bbq
