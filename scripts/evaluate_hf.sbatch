@@ -9,8 +9,9 @@
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --exclusive
-#SBATCH --partition=normal
+#SBATCH --partition=large512
 #SBATCH --time=11:59:00
+#SBATCH --nodelist=nid007646,nid007664,nid007626,nid006632,nid007357,nid007354,nid007624,nid006569
 
 # Aux functions.
 usage() {
@@ -49,7 +50,7 @@ if (( $# != 2 )); then
 fi
 MODEL=$1
 NAME=$2
-BS=${BS:-"auto:20"}
+BS=${BS:-"16"}
 SIZE=${SIZE:-1}
 BOS=${BOS:-false}
 LOGS_ROOT=${LOGS_ROOT:-/capstor/store/cscs/swissai/infra01/eval-logs}

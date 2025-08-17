@@ -2,7 +2,6 @@ global_mmlu/acc
 truthfulqa_multilingual_mc2/acc
 mgsm_direct/exact_match,flexible-extract
 mgsm_native_cot/exact_match,flexible-extract
-hellaswag_multilingual/acc_norm
 mlogiqa/acc_norm
 multi-if/prompt_level_loose_acc
 include_base_44/acc

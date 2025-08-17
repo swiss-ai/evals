@@ -23,7 +23,12 @@ echo "======================================"
 # Set default environment variables
 export SWISSAI_API_KEY="sk-rc-R-vJqSca2wRZBX5qBAGaqg"
 export WANDB_ENTITY=${WANDB_ENTITY:-apertus}
-export WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-v0.1.5}
+export WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-dataset-abl-v0.0.1}
+export TASKS=${TASKS:-./configs/alignment/tasks_english_custom.txt}
+export TABLE_METRICS=${TABLE_METRICS:-./configs/alignment/tasks_english_main_table_custom.txt}
+export HF_HOME=$SCRATCH/huggingface
+export HF_TOKEN=$(cat $HOME/.hf-token)
+export WANDB_API_KEY=$(cat $HOME/.wandb-api-key)
 
 # Configure based on mode
 case "$EVAL_MODE" in
@@ -50,8 +55,10 @@ esac
 EVALUATION_SCRIPTS=(
     # "examples/alignment/hf_eval_multiple_apertus_base_models.sh"
     # "examples/alignment/hf_eval_multiple_apertus_models.sh"
-    "examples/alignment/hf_eval_multiple_other_base_models.sh"
-    "examples/alignment/hf_eval_multiple_other_models.sh"
+    # "examples/alignment/hf_eval_multiple_other_base_models.sh"
+    # "examples/alignment/hf_eval_multiple_other_models.sh"
+    # "examples/alignment/hf_eval_sp_token_apertus_models.sh"
+    "examples/alignment/hf_eval_dataset_abl_apertus_models.sh"
 )
 
 echo "📋 Scripts to be launched:"

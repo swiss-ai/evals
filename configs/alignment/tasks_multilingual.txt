@@ -2,7 +2,6 @@ global_mmlu
 truthfulqa_multilingual_mc2
 mgsm_direct
 mgsm_native_cot
-hellaswag_multilingual
 mlogiqa
 blend_sample
 include_base_44
