@@ -9,9 +9,11 @@
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --exclusive
-#SBATCH --partition=large512
+#SBATCH --partition=normal
 #SBATCH --time=11:59:00
-#SBATCH --nodelist=nid007646,nid007664,nid007626,nid006632,nid007357,nid007354,nid007624,nid006569
+#SBATCH --exclude=nid005377
+# these nodes are in large512 partition
+##SBATCH --nodelist=nid007646,nid007664,nid007626,nid006632,nid007357,nid007354,nid007624,nid006569
 
 # Aux functions.
 usage() {

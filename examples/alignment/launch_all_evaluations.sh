@@ -24,8 +24,8 @@ echo "======================================"
 export SWISSAI_API_KEY="sk-rc-R-vJqSca2wRZBX5qBAGaqg"
 export WANDB_ENTITY=${WANDB_ENTITY:-apertus}
 export WANDB_PROJECT=${WANDB_PROJECT:-swissai-evals-dataset-abl-v0.0.1}
-export TASKS=${TASKS:-./configs/alignment/tasks_english_custom.txt}
-export TABLE_METRICS=${TABLE_METRICS:-./configs/alignment/tasks_english_main_table_custom.txt}
+export TASKS=${TASKS:-./configs/alignment/tasks_english.txt}
+export TABLE_METRICS=${TABLE_METRICS:-./configs/alignment/tasks_english_main_table.txt}
 export HF_HOME=$SCRATCH/huggingface
 export HF_TOKEN=$(cat $HOME/.hf-token)
 export WANDB_API_KEY=$(cat $HOME/.wandb-api-key)
