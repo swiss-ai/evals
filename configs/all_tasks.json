@@ -1,6 +1,62 @@
 {
 	"infer": {
-		"pretrain": ["arc_ar", "arc_bn", "arc_ca", "arc_da", "arc_de", "arc_es", "arc_eu", "arc_fr", "arc_gu", "arc_hi", "arc_hr", "arc_hu", "arc_hy", "arc_id", "arc_it", "arc_kn", "arc_ml", "arc_mr", "arc_ne", "arc_nl", "arc_pt", "arc_ro", "arc_ru", "arc_sk", "arc_sr", "arc_sv", "arc_ta", "arc_te", "arc_uk", "arc_vi", "arc_zh", "global_mmlu_ar", "global_mmlu_bn", "global_mmlu_de", "global_mmlu_es", "global_mmlu_fr", "global_mmlu_hi", "global_mmlu_id", "global_mmlu_it", "global_mmlu_ja", "global_mmlu_ko", "global_mmlu_pt", "global_mmlu_sw", "global_mmlu_yo", "global_mmlu_zh", "hellaswag", "hellaswag_ar", "hellaswag_bn", "hellaswag_ca", "hellaswag_da", "hellaswag_de", "hellaswag_es", "hellaswag_eu", "hellaswag_fr", "hellaswag_gu", "hellaswag_hi", "hellaswag_hr", "hellaswag_hu", "hellaswag_hy", "hellaswag_id", "hellaswag_it", "hellaswag_kn", "hellaswag_ml", "hellaswag_mr", "hellaswag_ne", "hellaswag_nl", "hellaswag_pt", "hellaswag_ro", "hellaswag_ru", "hellaswag_sk", "hellaswag_sr", "hellaswag_sv", "hellaswag_ta", "hellaswag_te", "hellaswag_uk", "hellaswag_vi", "include_base_44_albanian", "include_base_44_arabic", "include_base_44_armenian", "include_base_44_azerbaijani", "include_base_44_basque", "include_base_44_belarusian", "include_base_44_bengali", "include_base_44_bulgarian", "include_base_44_chinese", "include_base_44_croatian", "include_base_44_finnish", "include_base_44_french", "include_base_44_georgian", "include_base_44_german", "include_base_44_hebrew", "include_base_44_hindi", "include_base_44_hungarian", "include_base_44_indonesian", "include_base_44_italian", "include_base_44_japanese", "include_base_44_kazakh", "include_base_44_korean", "include_base_44_lithuanian", "include_base_44_malay", "include_base_44_malayalam", "include_base_44_nepali", "include_base_44_persian", "include_base_44_polish", "include_base_44_portuguese", "include_base_44_russian", "include_base_44_serbian", "include_base_44_spanish", "include_base_44_tagalog", "include_base_44_tamil", "include_base_44_telugu", "include_base_44_turkish", "include_base_44_ukrainian", "include_base_44_uzbek", "include_base_44_vietnamese", "mmlu", "winogrande", "xcopa_et", "xcopa_ht", "xcopa_qu", "xcopa_id", "xcopa_it", "xcopa_sw", "xcopa_ta", "xcopa_th", "xcopa_tr", "xcopa_vi", "xcopa_zh", "xnli_ar", "xnli_bg", "xnli_de", "xnli_el", "xnli_en", "xnli_es", "xnli_fr", "xnli_hi", "xnli_ru", "xnli_sw", "xnli_th", "xnli_tr", "xnli_ur", "xnli_vi", "xnli_zh", "xwinograd_en", "xwinograd_fr", "xwinograd_pt", "xwinograd_ru", "xwinograd_zh"]
+		"pretrain": [
+			"arc", "arc_ar", "arc_bn", "arc_ca", "arc_da", "arc_de", "arc_es", "arc_eu", "arc_fr", "arc_gu", "arc_hi", "arc_hr", "arc_hu", "arc_hy", "arc_id", "arc_it", "arc_kn", "arc_ml", "arc_mr", "arc_ne", "arc_nl", "arc_pt", "arc_ro", "arc_ru", "arc_sk", "arc_sr", "arc_sv", "arc_ta", "arc_te", "arc_uk", "arc_vi", "arc_zh",
+			"hellaswag", "hellaswag_ar", "hellaswag_bn", "hellaswag_ca", "hellaswag_da", "hellaswag_de", "hellaswag_es", "hellaswag_eu", "hellaswag_fr", "hellaswag_gu", "hellaswag_hi", "hellaswag_hr", "hellaswag_hu", "hellaswag_hy", "hellaswag_id", "hellaswag_it", "hellaswag_kn", "hellaswag_ml", "hellaswag_mr", "hellaswag_ne", "hellaswag_nl", "hellaswag_pt", "hellaswag_ro", "hellaswag_ru", "hellaswag_sk", "hellaswag_sr", "hellaswag_sv", "hellaswag_ta", "hellaswag_te", "hellaswag_uk", "hellaswag_vi",
+			"winogrande", "xcopa_et", "xcopa_ht", "xcopa_qu", "xcopa_id", "xcopa_it", "xcopa_sw", "xcopa_ta", "xcopa_th", "xcopa_tr", "xcopa_vi", "xcopa_zh", "xnli_ar", "xnli_bg", "xnli_de", "xnli_el", "xnli_en", "xnli_es", "xnli_fr", "xnli_hi", "xnli_ru", "xnli_sw", "xnli_th", "xnli_tr", "xnli_ur", "xnli_vi", "xnli_zh", "xwinograd_en", "xwinograd_fr", "xwinograd_pt", "xwinograd_ru", "xwinograd_zh"
+		],
+		"factual_dev": [
+			"mmlu", "global_mmlu_ar", "global_mmlu_bn", "global_mmlu_de", "global_mmlu_es", "global_mmlu_fr", "global_mmlu_hi", "global_mmlu_id", "global_mmlu_it", "global_mmlu_ja", "global_mmlu_ko", "global_mmlu_pt", "global_mmlu_sw", "global_mmlu_yo", "global_mmlu_zh", 
+			"include_base_44_albanian", "include_base_44_arabic", "include_base_44_armenian", "include_base_44_azerbaijani", "include_base_44_basque", "include_base_44_belarusian", "include_base_44_bengali", "include_base_44_bulgarian", "include_base_44_chinese", "include_base_44_croatian", "include_base_44_finnish", "include_base_44_french", "include_base_44_georgian", "include_base_44_german", "include_base_44_hebrew", "include_base_44_hindi", "include_base_44_hungarian", "include_base_44_indonesian", "include_base_44_italian", "include_base_44_japanese", "include_base_44_kazakh", "include_base_44_korean", "include_base_44_lithuanian", "include_base_44_malay", "include_base_44_malayalam", "include_base_44_nepali", "include_base_44_persian", "include_base_44_polish", "include_base_44_portuguese", "include_base_44_russian", "include_base_44_serbian", "include_base_44_spanish", "include_base_44_tagalog", "include_base_44_tamil", "include_base_44_telugu", "include_base_44_turkish", "include_base_44_ukrainian", "include_base_44_uzbek", "include_base_44_vietnamese", "mmlu", 
+			"blend",
+			"cultural_bench",
+			"truthfulqa", 
+			"truthfulqa_ar", "truthfulqa_bn", "truthfulqa_ca", "truthfulqa_da", "truthfulqa_de", "truthfulqa_es", "truthfulqa_eu", "truthfulqa_fr", "truthfulqa_gu", "truthfulqa_hi", "truthfulqa_hr", "truthfulqa_hu", "truthfulqa_hy", "truthfulqa_id", "truthfulqa_it", "truthfulqa_kn", "truthfulqa_ml", "truthfulqa_mr", "truthfulqa_ne", "truthfulqa_nl", "truthfulqa_pt", "truthfulqa_ro", "truthfulqa_ru", "truthfulqa_sk", "truthfulqa_sr", "truthfulqa_sv", "truthfulqa_ta", "truthfulqa_te", "truthfulqa_uk", "truthfulqa_vi", "truthfulqa_zh"
+		],
+		"factual_test": [
+			"mmlu_pro", "agieval",
+			"mmlu_prox_ar", "mmlu_prox_bn", "mmlu_prox_de", "mmlu_prox_en", "mmlu_prox_es", "mmlu_prox_fr", "mmlu_prox_hi", "mmlu_prox_ja", "mmlu_prox_ko", "mmlu_prox_pt", "mmlu_prox_sw", "mmlu_prox_th", "mmlu_prox_zh"
+		],
+		"sft_dev": [
+			"ifeval"
+		],
+		"alignment_dev": [
+			"realtoxicityprompts",
+			"polyglotoxicityprompts_full_arabic", "polyglotoxicityprompts_full_czech", "polyglotoxicityprompts_full_german", "polyglotoxicityprompts_full_english", "polyglotoxicityprompts_full_spanish", "polyglotoxicityprompts_full_french", "polyglotoxicityprompts_full_hindi", "polyglotoxicityprompts_full_indonesian", "polyglotoxicityprompts_full_italian", "polyglotoxicityprompts_full_japanese", "polyglotoxicityprompts_full_korean", "polyglotoxicityprompts_full_dutch", "polyglotoxicityprompts_full_polish", "polyglotoxicityprompts_full_portuguese", "polyglotoxicityprompts_full_russian", "polyglotoxicityprompts_full_swedish", "polyglotoxicityprompts_full_chinese",
+			"multijail_en", "multijail_ar", "multijail_ko", "multijail_th", "multijail_bn", "multijail_sw", "multijail_jv", "multijail_it", "multijail_vi",
+			"aya_redteaming_arabic", "aya_redteaming_english", "aya_redteaming_filipino", "aya_redteaming_french", "aya_redteaming_hindi", "aya_redteaming_russian", "aya_redteaming_serbian", "aya_redteaming_spanish",
+			"harmbench",
+			"toxigen",
+			"bbq",
+			"reward_bench"
+		],
+		"reasoning_dev": [
+			"bbh_cot_zeroshot",
+			"drop",
+			"hendrycks_math",
+			"gsm8k_cot_zeroshot",
+			"mathqa",
+			"humaneval",
+			"mbpp",
+			"mgsm_en_cot_bn",
+			"mgsm_en_cot_de",
+			"mgsm_en_cot_en",
+			"mgsm_en_cot_es",
+			"mgsm_en_cot_fr",
+			"mgsm_en_cot_ja",
+			"mgsm_en_cot_ru",
+			"mgsm_en_cot_sw",
+			"mgsm_en_cot_te",
+			"mgsm_en_cot_th",
+			"mgsm_en_cot_zh"
+		],
+		"reasoning_test": [
+			"gpqa_main_cot_zeroshot",
+			"gpqa_diamond_cot_zeroshot",
+			"gpqa_extended_cot_zeroshot",
+			"gsm8k_platinum_cot_zeroshot",
+			"longbench_hotpotqa"
+		]
 	},
 	"other": [
 		{"name": "ai2_arc", "kinds": ["pretrain"], "size": null, "language": "en", "dimension": null, "alias": ["arc_easy", "arc_challenge"]},
