@@ -2,13 +2,13 @@
 #SBATCH --account=a-infra01-1
 #SBATCH --cpus-per-task=288
 #SBATCH --gres=gpu:4
-#SBATCH --environment=/iopsstor/scratch/cscs/ahernnde/ncg_pt.toml
+#SBATCH --environment=/users/bmessmer/evals/containers/env.toml
 #SBATCH --job-name=evaluation
 #SBATCH --mem=460000
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --output=logs/%x_%j.out
-#SBATCH --error=logs/%x_%j.err
+#SBATCH --output=logs/data_ablations/%x_%j.out
+#SBATCH --error=logs/data_ablations/%x_%j.err
 #SBATCH --time=11:59:00
 #SBATCH --exclusive
 
