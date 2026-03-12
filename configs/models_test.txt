@@ -1,0 +1,2 @@
+/capstor/store/cscs/swissai/a139/checkpoints/qwen3_moe_mla_test_hf
+/capstor/store/cscs/swissai/a139/checkpoints/qwen3_moe_dsa_test_hf

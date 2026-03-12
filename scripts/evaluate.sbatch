@@ -1,11 +1,17 @@
 #!/bin/bash
+#SBATCH -A a-infra01-1
+#SBATCH --gres=gpu:4
+#SBATCH --environment=./containers/env.toml
 
+
+MODEL=${2:-"/capstor/store/cscs/swissai/a139/checkpoints/qwen3_moe_dsa_test_hf"}
+NAME="${MODEL##*/}"
 TOKENIZER="swiss-ai/Apertus-70B-2509"
+TASKS=${1:-"hellaswag,ai2_arc,lambada_openai,winogrande,piqa,openbookqa,commonsense_qa,mmlu,gsm8k,wikitext,lambada,squadv2,include_base_44,global_mmlu,xcopa,xnli,xwinograd,pawsx,m_arc,m_hellaswag"}
+WANDB_ENTITY=${WANDB_ENTITY:-"mariagrandury-epflnlp"}
+WANDB_PROJECT=${WANDB_PROJECT:-"moe-ablations-evals"}
 BOS=true
-NAME="apertus3-3b-64-nodes-cooldown-mt-nemotron"
-WANDB_PROJECT=Null # "data-ablations-evals"
 MEGATRON_BRANCH="81d44dbe25c22190989fa8a12284bdb8d1303b40"
-MODEL="/capstor/store/cscs/swissai/a139/checkpoints/qwen3_moe_mla_test_hf"
 ITS=(0120000)
 TOK_PER_IT=$(( 512 * 4096 ))
 IT=120000
@@ -15,12 +21,10 @@ MEGATRON_BRANCH=${MEGATRON_BRANCH:-main}
 SIZE=${SIZE:-1}
 BOS=${BOS:-false}
 LOGS_ROOT=${LOGS_ROOT:-$SCRATCH/eval-logs}
-TASKS=${TASKS:-swissai_eval}
 TRANSFORMERS_BRANCH=${TRANSFORMERS_BRANCH:-main}
 HARNESS_BRANCH=${HARNESS_BRANCH:-main}
 export HF_HOME=${HF_HOME:-/capstor/store/cscs/swissai/infra01/hf_home/}
 GPUS_PER_NODE=4
-WANDB_PROJECT=${WANDB_PROJECT:-Null}
 
 # Print configuration.
 echo "Configuration set:"
@@ -132,17 +136,17 @@ git clone https://github.com/swiss-ai/lm-evaluation-harness.git
 cd lm-evaluation-harness
 git checkout main # $HARNESS_BRANCH
 pip install -e .
-cd ..
+cd $SLURM_SUBMIT_DIR
 
 HF_CHECKPOINT_PATH=$MODEL
 if [[ -d $MODEL ]]; then
 	echo "$MODEL is a local directory, skipping download."
 else
-	huggingface-cli download $MODEL $MAYBE_DOWNLOAD_REVISION
+	hf download $MODEL $MAYBE_DOWNLOAD_REVISION
 fi
 if [ $TOKENIZER != $MODEL ]; then
 	echo "Why are you using a different tokenizer and model? TOKENIZER=$TOKENIZER, MODEL=$MODEL"
-	huggingface-cli download $TOKENIZER
+	hf download $TOKENIZER
 fi
 # export HF_HUB_OFFLINE=0
 
