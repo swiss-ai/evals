@@ -54,8 +54,9 @@ def get_log(infos: List[dict], tasks_cfg: dict) -> Dict[str, float]:
 
 def get_history(name: str) -> Dict[int, Dict[str, float]]:
     api = wandb.Api()
+    entity = os.environ.get("WANDB_ENTITY", api.default_entity)
     try:
-        run = api.run(f"{api.default_entity}/{os.environ['WANDB_PROJECT']}/{name}")
+        run = api.run(f"{entity}/{os.environ['WANDB_PROJECT']}/{name}")
     except wandb.errors.errors.CommError:  # Run not found.
         return {}
     history = collections.defaultdict(dict)
@@ -78,7 +79,7 @@ def main(logs_root: Path, name: Optional[str], it: Optional[int],
     for p1 in filter(lambda p: name is None or name == p.name, logs_root.iterdir()):
         print("Updating path", p1)
         history = get_history(p1.name)  # Get already pushed information.
-        with wandb.init(id=p1.name, name=p1.name) as run:
+        with wandb.init(id=p1.name, name=p1.name, entity=os.environ.get("WANDB_ENTITY"), project=os.environ.get("WANDB_PROJECT")) as run:
             run.define_metric("ConsumedTokens")
             run.define_metric("*", step_metric="ConsumedTokens")
             # Now iterate all iterations for this name.
@@ -135,7 +136,7 @@ def main(logs_root: Path, name: Optional[str], it: Optional[int],
             sublog = {"Model": name}
             sublog.update({task: log[task] for task in ["ConsumedTokens"] + show_in_table})
             df = pd.DataFrame([sublog])
-            with wandb.init(id=name, name=name) as run:
+            with wandb.init(id=name, name=name, entity=os.environ.get("WANDB_ENTITY"), project=os.environ.get("WANDB_PROJECT")) as run:
                 run.log({"eval_table": wandb.Table(dataframe=df), "ConsumedTokens": log["ConsumedTokens"]})
 
 
