@@ -15,11 +15,16 @@ then remaps the state dict to HF naming conventions and saves as safetensors.
 The standard Qwen3MoEBridge mapping doesn't handle MLA attention weights, so we
 do the Megatron->HF weight name remapping manually (following DeepSeek conventions
 for MLA weight names: q_a_proj, q_b_proj, kv_a_proj_with_mqa, kv_b_proj).
+
+Checkpoints can specify a wandb_config.json path to load model config from a
+Megatron-Bridge training run.
 """
 
+import argparse
 import json
 import re
 from collections import OrderedDict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -31,16 +36,38 @@ from megatron.bridge.models.qwen.qwen_provider import Qwen3MoEModelProvider
 from megatron.bridge.training.checkpointing import _load_model_weights_from_checkpoint
 from megatron.bridge.training.model_load_save import temporary_distributed_context
 
-NUM_LAYERS = 3
-NUM_EXPERTS = 8
-HIDDEN_SIZE = 128
-NUM_ATTENTION_HEADS = 32
-NUM_QUERY_GROUPS = 4
-FFN_HIDDEN_SIZE = 6144
-MOE_FFN_HIDDEN_SIZE = 768
-MOE_ROUTER_TOPK = 8
-Q_LORA_RANK = 32
-KV_CHANNELS = 128
+
+@dataclass
+class ModelConfig:
+    """Model architecture config for Megatron <-> HF conversion."""
+
+    num_layers: int
+    num_experts: int
+    hidden_size: int
+    num_attention_heads: int
+    num_query_groups: int
+    ffn_hidden_size: int
+    moe_ffn_hidden_size: int
+    moe_router_topk: int
+    kv_channels: int
+    q_lora_rank: Optional[int]
+    hf_model_id: str
+
+
+# Default config for small test checkpoints (mla-test, dsa-test)
+DEFAULT_CONFIG = ModelConfig(
+    num_layers=3,
+    num_experts=8,
+    hidden_size=128,
+    num_attention_heads=32,
+    num_query_groups=4,
+    ffn_hidden_size=6144,
+    moe_ffn_hidden_size=768,
+    moe_router_topk=8,
+    kv_channels=128,
+    q_lora_rank=32,
+    hf_model_id="Qwen/Qwen3-30B-A3B",
+)
 
 CHECKPOINTS = {
     "mla-test": {
@@ -55,7 +82,56 @@ CHECKPOINTS = {
         "mla": True,
         "dsa": True,
     },
+    "256n_gbs4096_muon_localattn": {
+        "megatron": "/capstor/store/cscs/swissai/a139/checkpoints/moe_runs/256n_gbs4096_muon_localattn",
+        "hf": "/capstor/scratch/cscs/mariagrandury/checkpoints/qwen3_moe_256n_gbs4096_muon_localattn_hf",
+        "wandb_config": "scripts/wandb_config.json",
+    },
 }
+
+def load_config_from_wandb(wandb_path: str) -> tuple[ModelConfig, bool, bool]:
+    """Load model config, mla, and dsa from a wandb_config.json export.
+
+    Returns:
+        (ModelConfig, mla, dsa)
+    """
+    path = Path(wandb_path)
+    if not path.is_absolute():
+        path = Path(__file__).resolve().parent.parent / wandb_path
+    data = json.loads(path.read_text())
+
+    model_cfg = data.get("model", {}).get("value", {})
+
+    mla = model_cfg.get("multi_latent_attention", False)
+    dsa = model_cfg.get("experimental_attention_variant") == "dsa"
+
+    config = ModelConfig(
+        num_layers=model_cfg["num_layers"],
+        num_experts=model_cfg["num_moe_experts"],
+        hidden_size=model_cfg["hidden_size"],
+        num_attention_heads=model_cfg["num_attention_heads"],
+        num_query_groups=model_cfg["num_query_groups"],
+        ffn_hidden_size=model_cfg["ffn_hidden_size"],
+        moe_ffn_hidden_size=model_cfg["moe_ffn_hidden_size"],
+        moe_router_topk=model_cfg["moe_router_topk"],
+        kv_channels=model_cfg["kv_channels"],
+        q_lora_rank=model_cfg["q_lora_rank"],
+        hf_model_id=model_cfg.get("hf_model_id", "Qwen/Qwen3-30B-A3B"),
+    )
+    print(config, mla, dsa)
+    return config, mla, dsa
+
+
+def get_checkpoint_config(cfg: dict) -> tuple[ModelConfig, bool, bool]:
+    """Resolve ModelConfig, mla, and dsa for a checkpoint entry."""
+    if "wandb_config" in cfg:
+        return load_config_from_wandb(cfg["wandb_config"])
+    return (
+        DEFAULT_CONFIG,
+        cfg.get("mla", True),
+        cfg.get("dsa", False),
+    )
+
 
 def find_latest_iter(ckpt_dir: str) -> Path:
     """Find the latest *completed* iter_* subdirectory in a checkpoint."""
@@ -70,21 +146,21 @@ def find_latest_iter(ckpt_dir: str) -> Path:
     return ckpt_path
 
 
-def build_provider(mla: bool = True, dsa: bool = False) -> Qwen3MoEModelProvider:
+def build_provider(config: ModelConfig, mla: bool = True, dsa: bool = False) -> Qwen3MoEModelProvider:
     """Build a Qwen3MoEModelProvider matching the training config."""
     provider = Qwen3MoEModelProvider(
-        num_layers=NUM_LAYERS,
-        hidden_size=HIDDEN_SIZE,
-        num_attention_heads=NUM_ATTENTION_HEADS,
-        num_query_groups=NUM_QUERY_GROUPS,
-        ffn_hidden_size=FFN_HIDDEN_SIZE,
-        moe_ffn_hidden_size=MOE_FFN_HIDDEN_SIZE,
-        num_moe_experts=NUM_EXPERTS,
-        moe_router_topk=MOE_ROUTER_TOPK,
-        kv_channels=KV_CHANNELS,
+        num_layers=config.num_layers,
+        hidden_size=config.hidden_size,
+        num_attention_heads=config.num_attention_heads,
+        num_query_groups=config.num_query_groups,
+        ffn_hidden_size=config.ffn_hidden_size,
+        moe_ffn_hidden_size=config.moe_ffn_hidden_size,
+        num_moe_experts=config.num_experts,
+        moe_router_topk=config.moe_router_topk,
+        kv_channels=config.kv_channels,
         seq_length=4096,
         multi_latent_attention=mla,
-        q_lora_rank=Q_LORA_RANK if mla else None,
+        q_lora_rank=config.q_lora_rank if mla else None,
     )
     if dsa:
         provider.experimental_attention_variant = "dsa"
@@ -156,18 +232,27 @@ def _remap_expert_key(suffix: str) -> Optional[str]:
     return None
 
 
-def _split_qkv(hf_state: dict, hf_prefix: str, qkv_weight: torch.Tensor) -> None:
+def _split_qkv(
+    hf_state: dict,
+    hf_prefix: str,
+    qkv_weight: torch.Tensor,
+    config: ModelConfig,
+) -> None:
     """Split a fused QKV weight into separate Q, K, V weights."""
-    q_size = NUM_ATTENTION_HEADS * KV_CHANNELS
-    k_size = NUM_QUERY_GROUPS * KV_CHANNELS
-    v_size = NUM_QUERY_GROUPS * KV_CHANNELS
+    q_size = config.num_attention_heads * config.kv_channels
+    k_size = config.num_query_groups * config.kv_channels
+    v_size = config.num_query_groups * config.kv_channels
     q, k, v = qkv_weight.split([q_size, k_size, v_size], dim=0)
     hf_state[f"{hf_prefix}.self_attn.q_proj.weight"] = q
     hf_state[f"{hf_prefix}.self_attn.k_proj.weight"] = k
     hf_state[f"{hf_prefix}.self_attn.v_proj.weight"] = v
 
 
-def remap_state_dict(state_dict: dict[str, torch.Tensor], mla: bool) -> dict[str, torch.Tensor]:
+def remap_state_dict(
+    state_dict: dict[str, torch.Tensor],
+    mla: bool,
+    config: ModelConfig,
+) -> dict[str, torch.Tensor]:
     """Remap a Megatron model state dict to HF naming conventions."""
     attn_map = MLA_ATTENTION_MAP if mla else STANDARD_ATTENTION_MAP
     hf_state: dict[str, torch.Tensor] = OrderedDict()
@@ -202,7 +287,7 @@ def remap_state_dict(state_dict: dict[str, torch.Tensor], mla: bool) -> dict[str
         for mcore_pattern, hf_pattern in attn_map.items():
             if suffix == mcore_pattern:
                 if hf_pattern is None:
-                    _split_qkv(hf_state, hf_prefix, tensor)
+                    _split_qkv(hf_state, hf_prefix, tensor, config)
                 else:
                     hf_state[f"{hf_prefix}.{hf_pattern}"] = tensor
                 mapped = True
@@ -237,6 +322,7 @@ def remap_state_dict(state_dict: dict[str, torch.Tensor], mla: bool) -> dict[str
 def save_hf_checkpoint(
     hf_state: dict[str, torch.Tensor],
     output_dir: str,
+    model_config: ModelConfig,
     mla: bool,
     dsa: bool,
 ) -> None:
@@ -256,36 +342,36 @@ def save_hf_checkpoint(
     (out / "model.safetensors.index.json").write_text(json.dumps(index, indent=2))
 
     # Save HF config (Qwen3 MoE base + MLA/DSA extensions)
-    config = AutoConfig.from_pretrained("Qwen/Qwen3-30B-A3B", trust_remote_code=True)
-    config.num_hidden_layers = NUM_LAYERS
-    config.hidden_size = HIDDEN_SIZE
-    config.intermediate_size = FFN_HIDDEN_SIZE
-    config.moe_intermediate_size = MOE_FFN_HIDDEN_SIZE
-    config.num_attention_heads = NUM_ATTENTION_HEADS
-    config.num_key_value_heads = NUM_QUERY_GROUPS
-    config.num_experts = NUM_EXPERTS
-    config.num_experts_per_tok = MOE_ROUTER_TOPK
-    config.vocab_size = 151936
-    config.max_position_embeddings = 40960
-    config.head_dim = KV_CHANNELS
+    hf_config = AutoConfig.from_pretrained(model_config.hf_model_id, trust_remote_code=True)
+    hf_config.num_hidden_layers = model_config.num_layers
+    hf_config.hidden_size = model_config.hidden_size
+    hf_config.intermediate_size = model_config.ffn_hidden_size
+    hf_config.moe_intermediate_size = model_config.moe_ffn_hidden_size
+    hf_config.num_attention_heads = model_config.num_attention_heads
+    hf_config.num_key_value_heads = model_config.num_query_groups
+    hf_config.num_experts = model_config.num_experts
+    hf_config.num_experts_per_tok = model_config.moe_router_topk
+    hf_config.vocab_size = 151936
+    hf_config.max_position_embeddings = 40960
+    hf_config.head_dim = model_config.kv_channels
     if mla:
-        config.multi_latent_attention = True
-        config.q_lora_rank = Q_LORA_RANK
-        config.kv_lora_rank = 512  # MLATransformerConfig default
-        config.qk_nope_head_dim = 128  # qk_head_dim (DeepSeek HF naming)
-        config.qk_rope_head_dim = 64  # qk_pos_emb_head_dim
-        config.v_head_dim = 128
+        hf_config.multi_latent_attention = True
+        hf_config.q_lora_rank = model_config.q_lora_rank
+        hf_config.kv_lora_rank = 512  # MLATransformerConfig default
+        hf_config.qk_nope_head_dim = 128  # qk_head_dim (DeepSeek HF naming)
+        hf_config.qk_rope_head_dim = 64  # qk_pos_emb_head_dim
+        hf_config.v_head_dim = 128
     if dsa:
-        config.experimental_attention_variant = "dsa"
-        config.dsa_indexer_n_heads = 16
-        config.dsa_indexer_head_dim = 128
-        config.dsa_indexer_topk = 256
-        config.dsa_indexer_loss_coeff = 0.001
-    config.save_pretrained(out)
+        hf_config.experimental_attention_variant = "dsa"
+        hf_config.dsa_indexer_n_heads = 16
+        hf_config.dsa_indexer_head_dim = 128
+        hf_config.dsa_indexer_topk = 256
+        hf_config.dsa_indexer_loss_coeff = 0.001
+    hf_config.save_pretrained(out)
 
     # Try to save tokenizer
     try:
-        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-30B-A3B", trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(model_config.hf_model_id, trust_remote_code=True)
         tokenizer.save_pretrained(out)
         print(f"  Saved tokenizer")
     except Exception as e:
@@ -298,19 +384,33 @@ def save_hf_checkpoint(
 # Main
 # ---------------------------------------------------------------------------
 
+parser = argparse.ArgumentParser(description="Convert Megatron checkpoints to HF format.")
+parser.add_argument(
+    "--checkpoint",
+    choices=sorted(CHECKPOINTS.keys()),
+    help="Convert only one checkpoint key from CHECKPOINTS.",
+)
+args = parser.parse_args()
+
+selected_checkpoints = (
+    {args.checkpoint: CHECKPOINTS[args.checkpoint]} if args.checkpoint else CHECKPOINTS
+)
+
 with temporary_distributed_context(backend="gloo"):
-    for name, cfg in CHECKPOINTS.items():
+    for name, cfg in selected_checkpoints.items():
         megatron_dir = cfg["megatron"]
         if not Path(megatron_dir).exists():
             print(f"\nSkipping {name}: checkpoint dir not found at {megatron_dir}")
             continue
 
+        model_config, mla, dsa = get_checkpoint_config(cfg)
         print(f"\n{'='*60}")
-        print(f"Converting {name} (MLA={cfg['mla']}, DSA={cfg['dsa']})")
+        print(f"Converting {name} (MLA={mla}, DSA={dsa})")
+        print(f"  Config: {model_config.num_layers}L, {model_config.hidden_size}H, {model_config.num_experts}E")
         print(f"{'='*60}")
 
         # 1) Build provider matching the training config
-        provider = build_provider(mla=cfg["mla"], dsa=cfg["dsa"])
+        provider = build_provider(model_config, mla=mla, dsa=dsa)
         provider.finalize()
         print(f"  Provider: {type(provider).__name__}, MLA={provider.multi_latent_attention}")
 
@@ -330,10 +430,10 @@ with temporary_distributed_context(backend="gloo"):
         # 4) Remap state dict to HF naming
         megatron_sd = model.state_dict()
         print(f"  Remapping {len(megatron_sd)} Megatron keys to HF format...")
-        hf_sd = remap_state_dict(megatron_sd, mla=cfg["mla"])
+        hf_sd = remap_state_dict(megatron_sd, mla=mla, config=model_config)
 
         # 5) Save as HF checkpoint
         print(f"  Saving to {cfg['hf']}")
-        save_hf_checkpoint(hf_sd, cfg["hf"], mla=cfg["mla"], dsa=cfg["dsa"])
+        save_hf_checkpoint(hf_sd, cfg["hf"], model_config, mla=mla, dsa=dsa)
 
         print(f"  Done: {name}")
