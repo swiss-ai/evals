@@ -37,6 +37,28 @@ from megatron.bridge.training.checkpointing import _load_model_weights_from_chec
 from megatron.bridge.training.model_load_save import temporary_distributed_context
 
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+MEGATRON_MOE_RUNS_ROOT = Path("/capstor/store/cscs/swissai/a139/checkpoints/moe_runs")
+HF_OUTPUT_ROOT = Path("/capstor/scratch/cscs/mariagrandury/checkpoints")
+WANDB_CONFIG_DIR = REPO_ROOT / "configs" / "wandb"
+
+
+CHECKPOINTS = {
+    "mla-test": {
+        "megatron": "/capstor/scratch/cscs/ntazi/checkpoints/1n_tp1_ep4_fsdp0_pp1_vpp0_nl3_ne8_hs128_mffn768_topk8_gbs12_mbs3_vocswissai_ngc_25-11-nemo-alps1_recomp-sel_mla-test",
+        "mla": True,  # trained before MLA Hydra fix — standard attention
+        "dsa": False,
+    },
+    "dsa-test": {
+        "megatron": "/capstor/scratch/cscs/ntazi/checkpoints/1n_tp1_ep4_fsdp0_pp1_vpp0_nl3_ne8_hs128_mffn768_topk8_gbs12_mbs3_vocswissai_ngc_25-11-nemo-alps1_recomp-sel_dsa-test",
+        "mla": True,
+        "dsa": True,
+    },
+    "256n_gbs4096_muon_localattn": {},
+}
+
+
+
 @dataclass
 class ModelConfig:
     """Model architecture config for Megatron <-> HF conversion."""
@@ -69,25 +91,7 @@ DEFAULT_CONFIG = ModelConfig(
     hf_model_id="Qwen/Qwen3-30B-A3B",
 )
 
-CHECKPOINTS = {
-    "mla-test": {
-        "megatron": "/capstor/scratch/cscs/ntazi/checkpoints/1n_tp1_ep4_fsdp0_pp1_vpp0_nl3_ne8_hs128_mffn768_topk8_gbs12_mbs3_vocswissai_ngc_25-11-nemo-alps1_recomp-sel_mla-test",
-        "hf": "/capstor/scratch/cscs/ntazi/checkpoints/qwen3_moe_mla_test_hf",
-        "mla": True,  # trained before MLA Hydra fix — standard attention
-        "dsa": False,
-    },
-    "dsa-test": {
-        "megatron": "/capstor/scratch/cscs/ntazi/checkpoints/1n_tp1_ep4_fsdp0_pp1_vpp0_nl3_ne8_hs128_mffn768_topk8_gbs12_mbs3_vocswissai_ngc_25-11-nemo-alps1_recomp-sel_dsa-test",
-        "hf": "/capstor/scratch/cscs/ntazi/checkpoints/qwen3_moe_dsa_test_hf",
-        "mla": True,
-        "dsa": True,
-    },
-    "256n_gbs4096_muon_localattn": {
-        "megatron": "/capstor/store/cscs/swissai/a139/checkpoints/moe_runs/256n_gbs4096_muon_localattn",
-        "hf": "/capstor/scratch/cscs/mariagrandury/checkpoints/qwen3_moe_256n_gbs4096_muon_localattn_hf",
-        "wandb_config": "scripts/wandb_config.json",
-    },
-}
+
 
 def load_config_from_wandb(wandb_path: str) -> tuple[ModelConfig, bool, bool]:
     """Load model config, mla, and dsa from a wandb_config.json export.
@@ -96,8 +100,6 @@ def load_config_from_wandb(wandb_path: str) -> tuple[ModelConfig, bool, bool]:
         (ModelConfig, mla, dsa)
     """
     path = Path(wandb_path)
-    if not path.is_absolute():
-        path = Path(__file__).resolve().parent.parent / wandb_path
     data = json.loads(path.read_text())
 
     model_cfg = data.get("model", {}).get("value", {})
@@ -118,14 +120,34 @@ def load_config_from_wandb(wandb_path: str) -> tuple[ModelConfig, bool, bool]:
         q_lora_rank=model_cfg["q_lora_rank"],
         hf_model_id=model_cfg.get("hf_model_id", "Qwen/Qwen3-30B-A3B"),
     )
-    print(config, mla, dsa)
     return config, mla, dsa
 
 
-def get_checkpoint_config(cfg: dict) -> tuple[ModelConfig, bool, bool]:
+def get_wandb_config_path(checkpoint_name: str) -> Path:
+    """Return configs/wandb/<checkpoint_name>.json."""
+    return WANDB_CONFIG_DIR / f"{checkpoint_name}.json"
+
+
+def get_hf_output_dir(checkpoint_name: str) -> Path:
+    """Return /capstor/scratch/cscs/$USER/checkpoints/<checkpoint_name>_hf."""
+    return HF_OUTPUT_ROOT / f"{checkpoint_name}_hf"
+
+
+def get_megatron_dir(checkpoint_name: str, cfg: dict) -> Path:
+    """Resolve Megatron checkpoint path.
+
+    Tests can override with explicit cfg["megatron"]; otherwise use moe_runs/<name>.
+    """
+    if "megatron" in cfg:
+        return Path(cfg["megatron"])
+    return MEGATRON_MOE_RUNS_ROOT / checkpoint_name
+
+
+def get_checkpoint_config(checkpoint_name: str, cfg: dict) -> tuple[ModelConfig, bool, bool]:
     """Resolve ModelConfig, mla, and dsa for a checkpoint entry."""
-    if "wandb_config" in cfg:
-        return load_config_from_wandb(cfg["wandb_config"])
+    wandb_path = get_wandb_config_path(checkpoint_name)
+    if wandb_path.exists():
+        return load_config_from_wandb(str(wandb_path))
     return (
         DEFAULT_CONFIG,
         cfg.get("mla", True),
@@ -398,12 +420,13 @@ selected_checkpoints = (
 
 with temporary_distributed_context(backend="gloo"):
     for name, cfg in selected_checkpoints.items():
-        megatron_dir = cfg["megatron"]
-        if not Path(megatron_dir).exists():
+        megatron_dir = get_megatron_dir(name, cfg)
+        if not megatron_dir.exists():
             print(f"\nSkipping {name}: checkpoint dir not found at {megatron_dir}")
             continue
 
-        model_config, mla, dsa = get_checkpoint_config(cfg)
+        model_config, mla, dsa = get_checkpoint_config(name, cfg)
+        hf_output_dir = get_hf_output_dir(name)
         print(f"\n{'='*60}")
         print(f"Converting {name} (MLA={mla}, DSA={dsa})")
         print(f"  Config: {model_config.num_layers}L, {model_config.hidden_size}H, {model_config.num_experts}E")
@@ -419,7 +442,7 @@ with temporary_distributed_context(backend="gloo"):
         print(f"  Model built: {sum(p.numel() for p in model.parameters()):,} params")
 
         # 3) Load distributed checkpoint weights
-        iter_path = find_latest_iter(megatron_dir)
+        iter_path = find_latest_iter(str(megatron_dir))
         print(f"  Loading weights from {iter_path}")
         _load_model_weights_from_checkpoint(
             str(iter_path),
@@ -433,7 +456,7 @@ with temporary_distributed_context(backend="gloo"):
         hf_sd = remap_state_dict(megatron_sd, mla=mla, config=model_config)
 
         # 5) Save as HF checkpoint
-        print(f"  Saving to {cfg['hf']}")
-        save_hf_checkpoint(hf_sd, cfg["hf"], model_config, mla=mla, dsa=dsa)
+        print(f"  Saving to {hf_output_dir}")
+        save_hf_checkpoint(hf_sd, str(hf_output_dir), model_config, mla=mla, dsa=dsa)
 
         print(f"  Done: {name}")
