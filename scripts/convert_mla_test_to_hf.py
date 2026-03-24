@@ -8,6 +8,14 @@ Usage (requires a SLURM allocation with GPU):
       bash -c "PYTHONPATH=/iopsstor/scratch/cscs/ntazi/projects/Megatron-Bridge/src:\$PYTHONPATH \
                python /iopsstor/scratch/cscs/ntazi/projects/Megatron-Bridge/convert_mla_test_to_hf.py"
 
+
+    srun --nodes=1 --ntasks-per-node=1 --mpi=pmix --account=infra01 \
+    --environment=/capstor/store/cscs/swissai/a139/containers/ngc_25-11-nemo-alps2.toml \
+    bash -lc "PYTHONPATH=/iopsstor/scratch/cscs/ntazi/projects/Megatron-Bridge/src:$PYTHONPATH \
+    python /capstor/scratch/cscs/mariagrandury/Megatron-Bridge/convert_mla_test_to_hf.py \
+    --checkpoint 256n_gbs4096_muon_localattn"
+
+
 Uses the Qwen3MoEModelProvider directly (with MLATransformerConfig inheritance) to
 build a Megatron model matching the training config, loads checkpoint weights,
 then remaps the state dict to HF naming conventions and saves as safetensors.
@@ -460,3 +468,4 @@ with temporary_distributed_context(backend="gloo"):
         save_hf_checkpoint(hf_sd, str(hf_output_dir), model_config, mla=mla, dsa=dsa)
 
         print(f"  Done: {name}")
+
