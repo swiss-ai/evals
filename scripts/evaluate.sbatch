@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -A a-infra01-1
+#SBATCH --account=infra01
 #SBATCH --gres=gpu:4
 #SBATCH --environment=./containers/env.toml
 

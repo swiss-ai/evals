@@ -1,6 +1,6 @@
 #!/bin/bash
 # bash scripts/submit_evals.sh
-# bash scripts/submit_evals.sh my_tasks.txt my_models.txt
+# bash scripts/submit_evals.sh configs/tasks_test.txt configs/models_test.txt
 
 set -euo pipefail
 

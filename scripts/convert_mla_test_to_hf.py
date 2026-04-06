@@ -9,11 +9,7 @@ Usage (requires a SLURM allocation with GPU):
                python /iopsstor/scratch/cscs/ntazi/projects/Megatron-Bridge/convert_mla_test_to_hf.py"
 
 
-    srun --nodes=1 --ntasks-per-node=1 --mpi=pmix --account=infra01 \
-    --environment=/capstor/store/cscs/swissai/a139/containers/ngc_25-11-nemo-alps2.toml \
-    bash -lc "PYTHONPATH=/iopsstor/scratch/cscs/ntazi/projects/Megatron-Bridge/src:$PYTHONPATH \
-    python /capstor/scratch/cscs/mariagrandury/Megatron-Bridge/convert_mla_test_to_hf.py \
-    --checkpoint 256n_gbs4096_muon_localattn"
+srun --nodes=1 --ntasks-per-node=1 --mpi=pmix --network=disable_rdzv_get --account=infra01 --environment=/capstor/store/cscs/swissai/a139/containers/ngc_25-11-nemo-alps3.toml bash -lc "PYTHONPATH=/capstor/scratch/cscs/mariagrandury/python_packages:/iopsstor/scratch/cscs/ntazi/projects/Megatron-Bridge/src:$PYTHONPATH python /capstor/scratch/cscs/mariagrandury/Megatron-Bridge/convert_mla_test_to_hf.py --checkpoint 256n_pp4_ep4_gbs6144_mbs2_muon"
 
 
 Uses the Qwen3MoEModelProvider directly (with MLATransformerConfig inheritance) to
@@ -37,13 +33,11 @@ from pathlib import Path
 from typing import Optional
 
 import torch
-from safetensors.torch import save_file
-from transformers import AutoConfig, AutoTokenizer
-
 from megatron.bridge.models.qwen.qwen_provider import Qwen3MoEModelProvider
 from megatron.bridge.training.checkpointing import _load_model_weights_from_checkpoint
 from megatron.bridge.training.model_load_save import temporary_distributed_context
-
+from safetensors.torch import save_file
+from transformers import AutoConfig, AutoTokenizer
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MEGATRON_MOE_RUNS_ROOT = Path("/capstor/store/cscs/swissai/a139/checkpoints/moe_runs")
@@ -63,8 +57,8 @@ CHECKPOINTS = {
         "dsa": True,
     },
     "256n_gbs4096_muon_localattn": {},
+    "256n_pp4_ep4_gbs6144_mbs2_muon": {},
 }
-
 
 
 @dataclass
@@ -98,7 +92,6 @@ DEFAULT_CONFIG = ModelConfig(
     q_lora_rank=32,
     hf_model_id="Qwen/Qwen3-30B-A3B",
 )
-
 
 
 def load_config_from_wandb(wandb_path: str) -> tuple[ModelConfig, bool, bool]:
@@ -151,7 +144,9 @@ def get_megatron_dir(checkpoint_name: str, cfg: dict) -> Path:
     return MEGATRON_MOE_RUNS_ROOT / checkpoint_name
 
 
-def get_checkpoint_config(checkpoint_name: str, cfg: dict) -> tuple[ModelConfig, bool, bool]:
+def get_checkpoint_config(
+    checkpoint_name: str, cfg: dict
+) -> tuple[ModelConfig, bool, bool]:
     """Resolve ModelConfig, mla, and dsa for a checkpoint entry."""
     wandb_path = get_wandb_config_path(checkpoint_name)
     if wandb_path.exists():
@@ -170,13 +165,17 @@ def find_latest_iter(ckpt_dir: str) -> Path:
     if latest_file.exists():
         iteration = int(latest_file.read_text().strip())
         return ckpt_path / f"iter_{iteration:07d}"
-    iter_folders = [f for f in ckpt_path.iterdir() if f.is_dir() and f.name.startswith("iter_")]
+    iter_folders = [
+        f for f in ckpt_path.iterdir() if f.is_dir() and f.name.startswith("iter_")
+    ]
     if iter_folders:
         return max(iter_folders, key=lambda f: int(f.name.replace("iter_", "")))
     return ckpt_path
 
 
-def build_provider(config: ModelConfig, mla: bool = True, dsa: bool = False) -> Qwen3MoEModelProvider:
+def build_provider(
+    config: ModelConfig, mla: bool = True, dsa: bool = False
+) -> Qwen3MoEModelProvider:
     """Build a Qwen3MoEModelProvider matching the training config."""
     provider = Qwen3MoEModelProvider(
         num_layers=config.num_layers,
@@ -372,7 +371,9 @@ def save_hf_checkpoint(
     (out / "model.safetensors.index.json").write_text(json.dumps(index, indent=2))
 
     # Save HF config (Qwen3 MoE base + MLA/DSA extensions)
-    hf_config = AutoConfig.from_pretrained(model_config.hf_model_id, trust_remote_code=True)
+    hf_config = AutoConfig.from_pretrained(
+        model_config.hf_model_id, trust_remote_code=True
+    )
     hf_config.num_hidden_layers = model_config.num_layers
     hf_config.hidden_size = model_config.hidden_size
     hf_config.intermediate_size = model_config.ffn_hidden_size
@@ -401,20 +402,26 @@ def save_hf_checkpoint(
 
     # Try to save tokenizer
     try:
-        tokenizer = AutoTokenizer.from_pretrained(model_config.hf_model_id, trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_config.hf_model_id, trust_remote_code=True
+        )
         tokenizer.save_pretrained(out)
         print(f"  Saved tokenizer")
     except Exception as e:
         print(f"  WARNING: Could not save tokenizer: {e}")
 
-    print(f"  Saved {len(hf_state)} weight tensors ({total_size / 1e6:.1f} MB) to {out}")
+    print(
+        f"  Saved {len(hf_state)} weight tensors ({total_size / 1e6:.1f} MB) to {out}"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
-parser = argparse.ArgumentParser(description="Convert Megatron checkpoints to HF format.")
+parser = argparse.ArgumentParser(
+    description="Convert Megatron checkpoints to HF format."
+)
 parser.add_argument(
     "--checkpoint",
     choices=sorted(CHECKPOINTS.keys()),
@@ -437,13 +444,17 @@ with temporary_distributed_context(backend="gloo"):
         hf_output_dir = get_hf_output_dir(name)
         print(f"\n{'='*60}")
         print(f"Converting {name} (MLA={mla}, DSA={dsa})")
-        print(f"  Config: {model_config.num_layers}L, {model_config.hidden_size}H, {model_config.num_experts}E")
+        print(
+            f"  Config: {model_config.num_layers}L, {model_config.hidden_size}H, {model_config.num_experts}E"
+        )
         print(f"{'='*60}")
 
         # 1) Build provider matching the training config
         provider = build_provider(model_config, mla=mla, dsa=dsa)
         provider.finalize()
-        print(f"  Provider: {type(provider).__name__}, MLA={provider.multi_latent_attention}")
+        print(
+            f"  Provider: {type(provider).__name__}, MLA={provider.multi_latent_attention}"
+        )
 
         # 2) Build Megatron model
         model = provider.provide()
@@ -468,4 +479,3 @@ with temporary_distributed_context(backend="gloo"):
         save_hf_checkpoint(hf_sd, str(hf_output_dir), model_config, mla=mla, dsa=dsa)
 
         print(f"  Done: {name}")
-

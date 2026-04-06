@@ -2,8 +2,12 @@ srun --environment=./containers/env.toml --pty -A a-infra01-1 --gres=gpu:4 -t 02
 
 
 for task in hellaswag ai2_arc lambada_openai winogrande piqa openbookqa commonsense_qa mmlu gsm8k wikitext lambada squadv2 include_base_44 global_mmlu xcopa xnli xwinograd pawsx m_arc m_hellaswag; do
-    sbatch --job-name="eval_${task}" --output="logs/eval_${task}_%j.out" scripts/angie.sbatch "${task}"
+    sbatch --job-name="eval_${task}" --account=infra01 --output="logs/eval_${task}_%j.out" scripts/evaluate.sbatch "${task}"
 done
+
+
+sbatch --job-name="eval_test" --account=infra01 --output="logs/eval_test_%j.out" scripts/evaluate.sbatch m_hellaswag
+
 
 
 
@@ -69,7 +73,7 @@ srun --jobid=convert_mla_test_to_hf --nodes=1 --ntasks-per-node=1 --mpi=pmix \
 Custom:
 
 srun --nodes=1 --ntasks-per-node=1 --mpi=pmix --account=infra01 \
-  --environment=/capstor/store/cscs/swissai/a139/containers/ngc_25-11-nemo-alps1.toml \
+  --environment=/capstor/store/cscs/swissai/a139/containers/nemo-alps2.toml \
   bash -lc "PYTHONPATH=/iopsstor/scratch/cscs/ntazi/projects/Megatron-Bridge/src:$PYTHONPATH \
   python /iopsstor/scratch/cscs/mariagrandury/Megatron-Bridge/convert_mla_test_to_hf.py \
   --checkpoint 256n_gbs4096_muon_localattn"
