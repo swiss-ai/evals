@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=a-infra01-1
+#SBATCH --account=infra01
 #SBATCH --cpus-per-task=288
 #SBATCH --gres=gpu:4
 #SBATCH --job-name=evaluation
@@ -10,7 +10,8 @@
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --exclusive
 #SBATCH --partition=normal
-#SBATCH --time=11:59:00
+#SBATCH --time=11:59:59
+#SBATCH --environment=/users/mariagrandury/evals/containers/env.toml
 
 # Aux functions.
 usage() {
@@ -166,7 +167,7 @@ CMD="lm_eval --model_args=$COMMON_MODEL_ARGS ${COMMON_EVAL_ARGS[@]}"
 
 echo "Installation command: $INSTALL_CMD"
 echo "Final command: $CMD"
-srun -ul --environment=./containers/env.toml bash -c " \
+srun -ul bash -c " \
 	$INSTALL_CMD
     $CMD
 "
@@ -179,7 +180,7 @@ echo "Uploading results to wandb"
 WANDB_CMD="cd $PWD && python -m scripts.alignment.update_wandb_alignment --entity $WANDB_ENTITY --project $WANDB_PROJECT --logs_root $HARNESS_EVAL_DIR --name $NAME --main_metrics $TABLE_METRICS"
 echo "Running command to upload results to wandb:"
 echo "$WANDB_CMD"
-srun -ul --environment=./containers/env.toml bash -c " \
+srun -ul bash -c " \
     $WANDB_CMD
 "
 echo "END TIME: $(date)"

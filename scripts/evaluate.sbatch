@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=infra01
 #SBATCH --gres=gpu:4
-#SBATCH --environment=./containers/env.toml
+#SBATCH --environment=/users/mariagrandury/evals/containers/env.toml
 
 MODEL=${2:-"/capstor/store/cscs/swissai/a139/checkpoints/qwen3_moe_dsa_test_hf"}
 NAME="${MODEL##*/}"
