@@ -1,0 +1,3 @@
+https://huggingface.co/HuggingFaceTB/SmolLM3-3B-checkpoints
+https://huggingface.co/swiss-ai/Apertus-8B-2509
+https://huggingface.co/allenai/Olmo-3-1025-7B

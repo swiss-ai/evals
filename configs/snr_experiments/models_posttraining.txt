@@ -1,0 +1,9 @@
+/capstor/store/cscs/swissai/infra01/distillation/checkpoints/distill/ap0.6b-from8b-TOP256-long/checkpoints
+/capstor/store/cscs/swissai/infra01/distillation/checkpoints/distill/ap1b-from8b-TOP256-long/checkpoints
+https://huggingface.co/daslab-testing/Apertus-1.7B-it800000-SFT
+https://huggingface.co/swiss-ai/Apertus-8B-Instruct-2509
+https://huggingface.co/HuggingFaceTB/SmolLM3-3B
+https://huggingface.co/allenai/Olmo-3-7B-Instruct-SFT
+https://huggingface.co/allenai/Olmo-3-7B-Instruct-DPO
+https://huggingface.co/allenai/Olmo-3-7B-Instruct
+https://huggingface.co/swiss-ai/Apertus-70B-Instruct-2509
