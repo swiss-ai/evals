@@ -6,12 +6,8 @@ set -euo pipefail
 
 TASKS_FILE="${1:-configs/tasks_test.txt}"
 MODELS_FILE="${2:-configs/models_test.txt}"
-FILE_PREFIX="${3:-/capstor/store/cscs/swissai/a139/checkpoints/moe_runs}"
 
 while IFS= read -r model; do
-    if [[ -n "$FILE_PREFIX" ]]; then
-        model="${FILE_PREFIX}/${model}"
-    fi
     name="${model##*/}"
     while IFS= read -r task; do
         sbatch --job-name="eval_${name}_${task}" \
