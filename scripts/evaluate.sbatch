@@ -4,7 +4,7 @@
 #SBATCH --environment=/users/mariagrandury/evals/containers/env.toml
 
 MODEL=${2:-"/capstor/store/cscs/swissai/a139/checkpoints/qwen3_moe_dsa_test_hf"}
-NAME="${MODEL##*/}"
+NAME="${NAME:-${MODEL##*/}}"
 TOKENIZER="swiss-ai/Apertus-70B-2509"
 TASKS=${1:-"hellaswag,ai2_arc,lambada_openai,winogrande,piqa,openbookqa,commonsense_qa,mmlu,gsm8k,wikitext,lambada,squadv2,include_base_44,global_mmlu,xcopa,xnli,xwinograd,pawsx,m_arc,m_hellaswag"}
 WANDB_ENTITY=${WANDB_ENTITY:-"mariagrandury-epflnlp"}
@@ -13,8 +13,8 @@ BOS=true
 MEGATRON_BRANCH="81d44dbe25c22190989fa8a12284bdb8d1303b40"
 ITS=(0120000)
 TOK_PER_IT=$(( 512 * 4096 ))
-IT=120000
-TOKENS_PER_ITER=$(( 512 * 4096 ))
+IT=${IT:-120000}
+TOKENS_PER_ITER=${TOKENS_PER_ITER:-$(( 512 * 4096 ))}
 BS=${BS:-"auto:20"}
 MEGATRON_BRANCH=${MEGATRON_BRANCH:-main}
 SIZE=${SIZE:-1}

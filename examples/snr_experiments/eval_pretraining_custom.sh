@@ -23,10 +23,13 @@ if [[ "$1" == "--test" ]]; then
     CKPT_DIR="${ROOT_DIR}/${MODEL_NAME}/checkpoints"
     FIRST_CKPT=$(ls -d "${CKPT_DIR}"/iter_*/ 2>/dev/null | head -n1)
     IT=$(basename "$FIRST_CKPT" | sed 's/iter_0*//')
-    export TASKS=$(head -n1 "$TASKS_FILE")
+    FIRST_TASK=$(head -n1 "$TASKS_FILE")
     export LIMIT=2
+    export IT=$IT
+    export TOKENS_PER_ITER=$TOK_PER_IT
+    export NAME=$MODEL_NAME
     sbatch --time=0:30:00 --job-name "eval-${MODEL_NAME}-test" \
-        scripts/evaluate.sbatch "$CKPT_DIR" "$IT" "$TOK_PER_IT" "$MODEL_NAME"
+        scripts/evaluate.sbatch "$FIRST_TASK" "$CKPT_DIR"
     exit 0
 fi
 
@@ -38,9 +41,11 @@ while IFS= read -r MODEL_NAME || [[ -n "$MODEL_NAME" ]]; do
         IT=$(basename "$CKPT_PATH" | sed 's/iter_0*//')
         while IFS= read -r TASK || [[ -n "$TASK" ]]; do
             [[ -z "$TASK" ]] && continue
-            export TASKS=$TASK
+            export IT=$IT
+            export TOKENS_PER_ITER=$TOK_PER_IT
+            export NAME=$MODEL_NAME
             sbatch --time=0:30:00 --job-name "eval-${MODEL_NAME}-${IT}-${TASK}" \
-                scripts/evaluate.sbatch "$CKPT_DIR" "$IT" "$TOK_PER_IT" "$MODEL_NAME"
+                scripts/evaluate.sbatch "$TASK" "$CKPT_DIR"
         done < "$TASKS_FILE"
     done
 done < "$MODELS_FILE"
