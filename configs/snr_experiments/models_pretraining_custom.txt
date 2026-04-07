@@ -1,0 +1,8 @@
+apertus-175M-9n-seed28-fwEdu60-fw240-1809322
+apertus-175M-9n-seed28-fwEdu90-fw210-1809175
+apertus-350M-14n-seed28-fwEdu60-fw240-1809323
+apertus-350M-14n-seed28-fwEdu90-fw210-1809174
+apertus-600M-21n-seed28-fwEdu60-fw240-1809324
+apertus-600M-21n-seed28-fwEdu90-fw210-1808240
+apertus-1B-21n-seed28-fwEdu60-fw240-1809325
+apertus-1B-21n-seed28-fwEdu90-fw210-1808241
