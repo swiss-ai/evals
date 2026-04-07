@@ -1,0 +1,8 @@
+commonsense_qa
+hellaswag
+openbookqa
+piqa
+siqa
+winogrande
+ai2_arc
+mmlu
