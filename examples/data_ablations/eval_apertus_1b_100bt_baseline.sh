@@ -12,5 +12,5 @@ TOK_PER_IT=$(( 504 * 4096 ))
 MODEL=apertus3-1b-21-nodes-phase-4-baseline
 
 for IT in "${ITS[@]}"; do
-	sbatch --job-name eval-$MODEL-$IT scripts/evaluate.sbatch $CKPT_PATH $IT $TOK_PER_IT $MODEL
+	sbatch --job-name eval-$MODEL-$IT scripts/eval.sbatch $CKPT_PATH $IT $TOK_PER_IT $MODEL
 done
