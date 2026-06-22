@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --account=a-infra01-1
+#SBATCH --account=infra01
 #SBATCH --cpus-per-task=288
 #SBATCH --gres=gpu:4
-#SBATCH --environment=/users/bmessmer/evals/containers/env.toml
+#SBATCH --environment=/users/%u/repos/evals/containers/env.toml
 #SBATCH --job-name=evaluation
 #SBATCH --mem=460000
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --output=logs/data_ablations/%x_%j.out
 #SBATCH --error=logs/data_ablations/%x_%j.err
-#SBATCH --time=11:59:00
+#SBATCH --time=00:59:00
 #SBATCH --exclusive
 
 # Aux functions.
@@ -58,9 +58,12 @@ SIZE=${SIZE:-1}
 BOS=${BOS:-false}
 LOGS_ROOT=${LOGS_ROOT:-$SCRATCH/eval-logs}
 TASKS=${TASKS:-swissai_eval}
+#TASKS=${TASKS:-winogrande,piqa,openbookqa,commonsense_qa,mmlu_continuation,hellaswag,ai2_arc}
+#TASKS=${TASKS:-mmlu_continuation}
+
 TRANSFORMERS_BRANCH=${TRANSFORMERS_BRANCH:-main}
 HARNESS_BRANCH=${HARNESS_BRANCH:-granular_eval}
-export HF_HOME=${HF_HOME:-/capstor/store/cscs/swissai/infra01/hf_home/}
+export HF_HOME=${HF_HOME:-/iopsstor/scratch/cscs/$USER/hf_home/}
 GPUS_PER_NODE=4
 
 # Print configuration.
@@ -170,6 +173,7 @@ pip install -e .
 cd ..
 
 git clone https://github.com/swiss-ai/lm-evaluation-harness.git
+#git clone https://github.com/beme248/lm-evaluation-harness.git
 cd lm-evaluation-harness
 git checkout $HARNESS_BRANCH
 pip install -e .
