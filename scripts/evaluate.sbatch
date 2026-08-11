@@ -68,7 +68,8 @@ GPUS_PER_NODE=4
 
 # Print configuration.
 echo "Configuration set:"
-printf "MODEL=$MODEL\nIT=$IT\nTOKENS_PER_ITER=$TOKENS_PER_ITER\nNAME=$NAME\nTOKENIZER=$TOKENIZER\nBS=$BS\nREVISION=$REVISION\nMEGATRON_BRANCH=$MEGATRON_BRANCH\nSIZE=$SIZE\nLIMIT=$LIMIT\nBOS=$BOS\nLOGS_ROOT=$LOGS_ROOT\nTASKS=$TASKS\n\nTRANSFORMERS_BRANCH=$TRANSFORMERS_BRANCH\nHARNESS_BRANCH=$HARNESS_BRANCH\nHF_HOME=$HF_HOME\n\n"
+printf "MODEL=%s\nIT=%s\nTOKENS_PER_ITER=%s\nNAME=%s\nTOKENIZER=%s\nBS=%s\nREVISION=%s\nMEGATRON_BRANCH=%s\nSIZE=%s\nLIMIT=%s\nBOS=%s\nLOGS_ROOT=%s\nTASKS=%s\n\nTRANSFORMERS_BRANCH=%s\nHARNESS_BRANCH=%s\nHF_HOME=%s\n\n" \
+	"$MODEL" "$IT" "$TOKENS_PER_ITER" "$NAME" "$TOKENIZER" "$BS" "$REVISION" "$MEGATRON_BRANCH" "$SIZE" "$LIMIT" "$BOS" "$LOGS_ROOT" "$TASKS" "$TRANSFORMERS_BRANCH" "$HARNESS_BRANCH" "$HF_HOME"
 
 # Generic envs.
 export MASTER_ADDR=$(hostname)
@@ -166,8 +167,10 @@ echo $SLURM_JOB_ID >> $RUN_ROOT/job_ids.txt
 # Install custom transformers and lm-harness.
 echo Installing transformers and eval harness.
 cd $TEMP_REPOS
-git clone https://github.com/swiss-ai/transformers.git
-cd transformers
+# git clone https://github.com/swiss-ai/transformers.git
+# cd transformers
+git clone https://github.com/swiss-ai/transformers-archive.git
+cd transformers-archive
 git checkout $TRANSFORMERS_BRANCH
 pip install -e .
 cd ..
@@ -220,7 +223,7 @@ else
 		huggingface-cli download $TOKENIZER
 	fi
 fi
-export HF_HUB_OFFLINE=1
+export HF_HUB_OFFLINE=0
 
 # Finally, run the actual evaluations.
 DP=$(( GPUS_PER_NODE / MP ))
